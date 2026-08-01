@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const STATIC_PATHS = ["/", "/catalogo", "/sobre", "/contato", "/privacidade", "/termos"];
 
-export const Route = createFileRoute("/sitemap[.]xml")({
+export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async ({ request }) => {

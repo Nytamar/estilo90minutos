@@ -16,6 +16,7 @@ import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as ContatoRouteImport } from './routes/contato'
 import { Route as FavoritosRouteImport } from './routes/favoritos'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -58,6 +59,11 @@ const FavoritosRoute = FavoritosRouteImport.update({
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
   id: '/privacidade',
   path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SobreRoute = SobreRouteImport.update({
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/contato': typeof ContatoRoute
   '/favoritos': typeof FavoritosRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
   '/admin/cupons': typeof AdminCuponsRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/contato': typeof ContatoRoute
   '/favoritos': typeof FavoritosRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
   '/admin/cupons': typeof AdminCuponsRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/contato': typeof ContatoRoute
   '/favoritos': typeof FavoritosRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
   '/admin/cupons': typeof AdminCuponsRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/contato'
     | '/favoritos'
     | '/privacidade'
+    | '/sitemap.xml'
     | '/sobre'
     | '/termos'
     | '/admin/cupons'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/contato'
     | '/favoritos'
     | '/privacidade'
+    | '/sitemap.xml'
     | '/sobre'
     | '/termos'
     | '/admin/cupons'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/contato'
     | '/favoritos'
     | '/privacidade'
+    | '/sitemap.xml'
     | '/sobre'
     | '/termos'
     | '/admin/cupons'
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   ContatoRoute: typeof ContatoRoute
   FavoritosRoute: typeof FavoritosRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SobreRoute: typeof SobreRoute
   TermosRoute: typeof TermosRoute
   ProdutoSlugRoute: typeof ProdutoSlugRoute
@@ -267,6 +280,13 @@ declare module '@tanstack/react-router' {
       path: '/privacidade'
       fullPath: '/privacidade'
       preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sobre': {
@@ -354,6 +374,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContatoRoute: ContatoRoute,
   FavoritosRoute: FavoritosRoute,
   PrivacidadeRoute: PrivacidadeRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   SobreRoute: SobreRoute,
   TermosRoute: TermosRoute,
   ProdutoSlugRoute: ProdutoSlugRoute,
