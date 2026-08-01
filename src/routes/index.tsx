@@ -51,7 +51,7 @@ function Home() {
           className="absolute inset-0 h-full w-full object-cover opacity-45"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/30" />
-        <div className="relative mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-center gap-6 px-4 py-20 sm:px-6">
+        <div className="relative mx-auto flex min-h-[78vh] max-h-[760px] max-w-7xl flex-col justify-center gap-6 px-4 py-20 sm:px-6">
           <span className="w-fit rounded-full border border-primary/40 px-4 py-1 text-xs uppercase tracking-[0.25em] text-primary animate-fade-up">
             Coleção 2025/26
           </span>
