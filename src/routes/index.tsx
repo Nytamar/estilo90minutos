@@ -78,7 +78,7 @@ function Home() {
       </section>
 
       {/* Benefícios */}
-      <section className="mx-auto -mt-8 grid max-w-7xl gap-4 px-4 sm:grid-cols-3 sm:px-6">
+      <section className="relative z-10 mx-auto -mt-8 grid max-w-7xl gap-4 px-4 sm:grid-cols-3 sm:px-6">
         {[
           { icon: MessageCircle, title: "Pedido pelo WhatsApp", desc: "Atendimento humano e rápido" },
           { icon: Truck, title: "Enviamos para todo Brasil", desc: "Frete calculado no atendimento" },
