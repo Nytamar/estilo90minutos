@@ -19,6 +19,8 @@ import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminCuponsRouteImport } from './routes/admin.cupons'
+import { Route as AdminTaxonomiasRouteImport } from './routes/admin.taxonomias'
 import { Route as ProdutoSlugRouteImport } from './routes/produto.$slug'
 import { Route as AdminProdutosIndexRouteImport } from './routes/admin.produtos.index'
 import { Route as AdminProdutosIdRouteImport } from './routes/admin.produtos.$id'
@@ -73,6 +75,16 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCuponsRoute = AdminCuponsRouteImport.update({
+  id: '/cupons',
+  path: '/cupons',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTaxonomiasRoute = AdminTaxonomiasRouteImport.update({
+  id: '/taxonomias',
+  path: '/taxonomias',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ProdutoSlugRoute = ProdutoSlugRouteImport.update({
   id: '/produto/$slug',
   path: '/produto/$slug',
@@ -99,6 +111,8 @@ export interface FileRoutesByFullPath {
   '/privacidade': typeof PrivacidadeRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
+  '/admin/cupons': typeof AdminCuponsRoute
+  '/admin/taxonomias': typeof AdminTaxonomiasRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/produtos/$id': typeof AdminProdutosIdRoute
@@ -113,6 +127,8 @@ export interface FileRoutesByTo {
   '/privacidade': typeof PrivacidadeRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
+  '/admin/cupons': typeof AdminCuponsRoute
+  '/admin/taxonomias': typeof AdminTaxonomiasRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin': typeof AdminIndexRoute
   '/admin/produtos/$id': typeof AdminProdutosIdRoute
@@ -129,6 +145,8 @@ export interface FileRoutesById {
   '/privacidade': typeof PrivacidadeRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
+  '/admin/cupons': typeof AdminCuponsRoute
+  '/admin/taxonomias': typeof AdminTaxonomiasRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/produtos/$id': typeof AdminProdutosIdRoute
@@ -146,6 +164,8 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/sobre'
     | '/termos'
+    | '/admin/cupons'
+    | '/admin/taxonomias'
     | '/produto/$slug'
     | '/admin/'
     | '/admin/produtos/$id'
@@ -160,6 +180,8 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/sobre'
     | '/termos'
+    | '/admin/cupons'
+    | '/admin/taxonomias'
     | '/produto/$slug'
     | '/admin'
     | '/admin/produtos/$id'
@@ -175,6 +197,8 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/sobre'
     | '/termos'
+    | '/admin/cupons'
+    | '/admin/taxonomias'
     | '/produto/$slug'
     | '/admin/'
     | '/admin/produtos/$id'
@@ -266,6 +290,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/cupons': {
+      id: '/admin/cupons'
+      path: '/cupons'
+      fullPath: '/admin/cupons'
+      preLoaderRoute: typeof AdminCuponsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/taxonomias': {
+      id: '/admin/taxonomias'
+      path: '/taxonomias'
+      fullPath: '/admin/taxonomias'
+      preLoaderRoute: typeof AdminTaxonomiasRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/produto/$slug': {
       id: '/produto/$slug'
       path: '/produto/$slug'
@@ -291,12 +329,16 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminCuponsRoute: typeof AdminCuponsRoute
+  AdminTaxonomiasRoute: typeof AdminTaxonomiasRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminProdutosIdRoute: typeof AdminProdutosIdRoute
   AdminProdutosIndexRoute: typeof AdminProdutosIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminCuponsRoute: AdminCuponsRoute,
+  AdminTaxonomiasRoute: AdminTaxonomiasRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminProdutosIdRoute: AdminProdutosIdRoute,
   AdminProdutosIndexRoute: AdminProdutosIndexRoute,
