@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Flame, Sparkles, Truck, ShieldCheck, MessageCircle } from "lucide-react";
-import { productsQuery, effectivePrice } from "@/lib/catalog";
+import { productsQuery, type Product } from "@/lib/catalog";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
@@ -163,7 +163,7 @@ function ProductSection({
 }: {
   title: string;
   icon: React.ReactNode;
-  products: ReturnType<typeof effectivePrice> extends never ? never : Parameters<typeof ProductCard>[0]["product"][];
+  products: Product[];
   loading: boolean;
 }) {
   if (!loading && products.length === 0) return null;
