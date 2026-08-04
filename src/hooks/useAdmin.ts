@@ -18,10 +18,7 @@ export function useAdminSession() {
         setLoading(false);
         return;
       }
-      const { data } = await supabase.rpc("has_role", {
-        _user_id: current.user.id,
-        _role: "admin",
-      });
+      const { data } = await supabase.rpc("is_admin");
       if (!active) return;
       setIsAdmin(Boolean(data));
       setLoading(false);
