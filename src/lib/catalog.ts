@@ -28,8 +28,21 @@ export type Product = {
   league_id: string | null;
   country_id: string | null;
   season_id: string | null;
+  availability: Availability;
   product_sizes: ProductSize[];
 };
+
+export type Availability = "pronta_entrega" | "encomenda";
+
+export const availabilityLabel: Record<Availability, string> = {
+  pronta_entrega: "Pronta entrega",
+  encomenda: "Sob encomenda",
+};
+
+export function availabilityOf(product: { availability?: string | null }): Availability {
+  return product.availability === "encomenda" ? "encomenda" : "pronta_entrega";
+}
+
 
 const SELECT = "*, product_sizes(id, size, stock, position)";
 

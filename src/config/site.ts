@@ -14,4 +14,4 @@ export const siteConfig = {
   city: "Recife - PE",
 } as const;
 
-export const SIZES = ["P", "M", "G", "GG", "XGG"] as const;
+export const SIZES = ["P", "M", "G", "GG", "EXG"] as const;

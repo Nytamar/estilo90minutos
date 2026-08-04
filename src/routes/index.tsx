@@ -1,7 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Flame, Sparkles, Truck, ShieldCheck, MessageCircle } from "lucide-react";
-import { productsQuery, type Product } from "@/lib/catalog";
+import {
+  ArrowRight,
+  Flame,
+  Sparkles,
+  Truck,
+  ShieldCheck,
+  MessageCircle,
+  PackageCheck,
+  Clock,
+} from "lucide-react";
+import { productsQuery, availabilityOf, type Product } from "@/lib/catalog";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
@@ -38,6 +47,8 @@ function Home() {
   const featured = products.filter((p) => p.featured).slice(0, 4);
   const recent = products.slice(0, 4);
   const bestSellers = [...products].sort((a, b) => b.sold_count - a.sold_count).slice(0, 4);
+  const readyToShip = products.filter((p) => availabilityOf(p) === "pronta_entrega").slice(0, 8);
+  const madeToOrder = products.filter((p) => availabilityOf(p) === "encomenda").slice(0, 8);
 
   return (
     <div>
@@ -115,6 +126,18 @@ function Home() {
         </div>
       </section>
 
+      <ProductSection
+        title="Pronta entrega"
+        icon={<PackageCheck className="h-5 w-5 text-primary" />}
+        products={readyToShip}
+        loading={isLoading}
+      />
+      <ProductSection
+        title="Disponíveis para encomenda"
+        icon={<Clock className="h-5 w-5 text-primary" />}
+        products={madeToOrder}
+        loading={isLoading}
+      />
       <ProductSection
         title="Em destaque"
         icon={<Sparkles className="h-5 w-5 text-primary" />}

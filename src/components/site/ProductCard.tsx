@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import type { Product } from "@/lib/catalog";
-import { effectivePrice, totalStock } from "@/lib/catalog";
+import { effectivePrice, totalStock, availabilityOf, availabilityLabel } from "@/lib/catalog";
 import { formatPrice, stockLabel, stockStatus } from "@/lib/format";
 import { useFavorites } from "@/hooks/useFavorites";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ export function ProductCard({ product }: { product: Product }) {
   const hasDiscount = product.sale_price != null && product.sale_price < product.price;
   const image = product.images[0] ?? "/images/jersey-1.jpg";
   const favorite = isFavorite(product.id);
+  const availability = availabilityOf(product);
 
   return (
     <article className="group surface-card hover-lift relative overflow-hidden rounded-2xl">
@@ -46,6 +47,16 @@ export function ProductCard({ product }: { product: Product }) {
               -{Math.round((1 - price / product.price) * 100)}%
             </span>
           )}
+          <span
+            className={cn(
+              "absolute left-3 bottom-3 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest",
+              availability === "pronta_entrega"
+                ? "bg-success/90 text-background"
+                : "bg-secondary/90 text-foreground",
+            )}
+          >
+            {availabilityLabel[availability]}
+          </span>
           {status === "out_of_stock" && (
             <span className="absolute inset-x-0 bottom-0 bg-background/85 py-2 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               Esgotado

@@ -35,6 +35,7 @@ type Form = {
   images: string;
   featured: boolean;
   active: boolean;
+  availability: string;
   category_id: string;
   brand_id: string;
   club_id: string;
@@ -52,6 +53,7 @@ const emptyForm: Form = {
   images: "",
   featured: false,
   active: true,
+  availability: "pronta_entrega",
   category_id: "",
   brand_id: "",
   club_id: "",
@@ -105,6 +107,7 @@ function ProdutoEditor() {
       images: product.images.join("\n"),
       featured: product.featured,
       active: product.active,
+      availability: (product as { availability?: string }).availability ?? "pronta_entrega",
       category_id: product.category_id ?? "",
       brand_id: product.brand_id ?? "",
       club_id: product.club_id ?? "",
@@ -143,6 +146,7 @@ function ProdutoEditor() {
         .filter(Boolean),
       featured: form.featured,
       active: form.active,
+      availability: form.availability,
       category_id: form.category_id || null,
       brand_id: form.brand_id || null,
       club_id: form.club_id || null,
@@ -257,6 +261,19 @@ function ProdutoEditor() {
             </select>
           </div>
         ))}
+
+        <div>
+          <Label htmlFor="availability">Disponibilidade</Label>
+          <select
+            id="availability"
+            value={form.availability}
+            onChange={(e) => set("availability", e.target.value)}
+            className="h-10 w-full rounded-md border border-input bg-card px-3 text-sm"
+          >
+            <option value="pronta_entrega">Pronta entrega</option>
+            <option value="encomenda">Sob encomenda</option>
+          </select>
+        </div>
 
         <div className="flex items-center gap-3">
           <Switch
