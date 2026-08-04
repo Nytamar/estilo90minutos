@@ -3,7 +3,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Filter, Search, X } from "lucide-react";
 import { z } from "zod";
-import { productsQuery, taxonomiesQuery, effectivePrice, totalStock } from "@/lib/catalog";
+import {
+  productsQuery,
+  taxonomiesQuery,
+  effectivePrice,
+  totalStock,
+  availabilityOf,
+  type Availability,
+} from "@/lib/catalog";
 import type { Taxonomy } from "@/lib/catalog";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -58,6 +65,7 @@ function Catalogo() {
   const [query, setQuery] = useState(params.q ?? "");
   const [selected, setSelected] = useState<Record<string, string | null>>({});
   const [size, setSize] = useState<string | null>(null);
+  const [availability, setAvailability] = useState<Availability | null>(null);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [sort, setSort] = useState<SortKey>("recentes");
   const [page, setPage] = useState(1);
@@ -79,6 +87,7 @@ function Catalogo() {
         if (value && p[g.field] !== value) return false;
       }
       if (size && !p.product_sizes.some((s) => s.size === size && s.stock > 0)) return false;
+      if (availability && availabilityOf(p) !== availability) return false;
       if (maxPrice != null && effectivePrice(p) > maxPrice) return false;
       if (query.trim()) {
         const q = query.trim().toLowerCase();
@@ -102,7 +111,7 @@ function Catalogo() {
       }
     });
     return list;
-  }, [products, categoryId, selected, size, maxPrice, query, sort]);
+  }, [products, categoryId, selected, size, availability, maxPrice, query, sort]);
 
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const current = Math.min(page, pages);
@@ -111,6 +120,7 @@ function Catalogo() {
   const clearAll = () => {
     setSelected({});
     setSize(null);
+    setAvailability(null);
     setMaxPrice(null);
     setQuery("");
     setPage(1);
@@ -198,6 +208,33 @@ function Catalogo() {
               </div>
             );
           })}
+
+          <div>
+            <h2 className="mb-2 font-display text-lg">Disponibilidade</h2>
+            <div className="flex flex-wrap gap-2">
+              {([
+                { key: "pronta_entrega", label: "Pronta entrega" },
+                { key: "encomenda", label: "Sob encomenda" },
+              ] as const).map((o) => (
+                <button
+                  key={o.key}
+                  type="button"
+                  onClick={() => {
+                    setAvailability(availability === o.key ? null : o.key);
+                    setPage(1);
+                  }}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-xs transition-colors",
+                    availability === o.key
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground hover:border-primary hover:text-primary",
+                  )}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div>
             <h2 className="mb-2 font-display text-lg">Tamanho</h2>
