@@ -98,6 +98,7 @@ export type Database = {
       products: {
         Row: {
           active: boolean
+          availability: string
           brand_id: string | null
           category_id: string | null
           club_id: string | null
@@ -119,6 +120,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          availability?: string
           brand_id?: string | null
           category_id?: string | null
           club_id?: string | null
@@ -140,6 +142,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          availability?: string
           brand_id?: string | null
           category_id?: string | null
           club_id?: string | null
