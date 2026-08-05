@@ -189,6 +189,17 @@ function ProdutoPage() {
             {stockLabel[status]}
           </p>
 
+          {availabilityOf(product) === "encomenda" && (
+            <div className="mt-4 flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/5 p-4">
+              <Clock className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+              <p className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">Prazo de entrega:</span>{" "}
+                {PRE_ORDER_NOTICE}
+              </p>
+            </div>
+          )}
+
+
           <p className="mt-5 text-muted-foreground">{product.description}</p>
 
           <Separator className="my-6" />
