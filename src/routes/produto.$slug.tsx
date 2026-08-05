@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Heart, Minus, Plus, Share2, ShieldCheck, Truck, MessageCircle } from "lucide-react";
+import { Heart, Minus, Plus, Share2, ShieldCheck, Truck, MessageCircle, Clock } from "lucide-react";
 import { toast } from "sonner";
 import {
   productQuery,
