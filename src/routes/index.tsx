@@ -10,7 +10,7 @@ import {
   PackageCheck,
   Clock,
 } from "lucide-react";
-import { productsQuery, availabilityOf, type Product } from "@/lib/catalog";
+import { productsQuery, availabilityOf, PRE_ORDER_NOTICE, type Product } from "@/lib/catalog";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
