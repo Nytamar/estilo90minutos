@@ -8,6 +8,7 @@ export type WhatsAppOrder = {
   size: string;
   quantity: number;
   url: string;
+  customization?: { name: string; number: string } | null;
 };
 
 /** Monta o link do WhatsApp já com todos os dados do pedido preenchidos. */
@@ -21,8 +22,17 @@ export function buildWhatsAppOrderLink(order: WhatsAppOrder): string {
     `*Quantidade:* ${order.quantity}`,
     `*Preço unitário:* ${formatPrice(order.price)}`,
     `*Total:* ${formatPrice(order.price * order.quantity)}`,
-    `*Link:* ${order.url}`,
   ];
+  if (order.customization) {
+    lines.push(
+      `*Personalização:* Sim`,
+      `*Nome na camisa:* ${order.customization.name || "-"}`,
+      `*Número:* ${order.customization.number || "-"}`,
+    );
+  } else {
+    lines.push(`*Personalização:* Não`);
+  }
+  lines.push(`*Link:* ${order.url}`);
   return `https://wa.me/${siteConfig.whatsappNumber}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 

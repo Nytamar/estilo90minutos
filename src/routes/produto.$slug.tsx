@@ -10,6 +10,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +37,7 @@ const sizeTable = [
   { size: "M", chest: "53 cm", length: "72 cm" },
   { size: "G", chest: "56 cm", length: "74 cm" },
   { size: "GG", chest: "59 cm", length: "76 cm" },
-  { size: "XGG", chest: "62 cm", length: "78 cm" },
+  { size: "EXG", chest: "62 cm", length: "78 cm" },
 ];
 
 function ProdutoPage() {
@@ -49,6 +50,9 @@ function ProdutoPage() {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [zoom, setZoom] = useState(false);
+  const [personalize, setPersonalize] = useState(false);
+  const [playerName, setPlayerName] = useState("");
+  const [playerNumber, setPlayerNumber] = useState("");
 
   const sizes = useMemo(
     () => (product?.product_sizes ?? []).slice().sort((a, b) => a.position - b.position),
@@ -84,6 +88,7 @@ function ProdutoPage() {
     size: selectedSize ?? "-",
     quantity,
     url,
+    customization: personalize ? { name: playerName.trim(), number: playerNumber.trim() } : null,
   });
 
   async function share() {
@@ -209,6 +214,65 @@ function ProdutoPage() {
                 ? `${sizes.find((s) => s.size === selectedSize)?.stock ?? 0} unidade(s) do tamanho ${selectedSize}`
                 : "Selecione um tamanho"}
             </p>
+          </div>
+
+          <div className="mt-6">
+            <h2 className="font-display text-lg">Personalização</h2>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setPersonalize(false)}
+                className={cn(
+                  "h-11 rounded-md border text-sm font-medium transition-colors",
+                  !personalize
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border hover:border-primary",
+                )}
+              >
+                Sem personalização
+              </button>
+              <button
+                type="button"
+                onClick={() => setPersonalize(true)}
+                className={cn(
+                  "h-11 rounded-md border text-sm font-medium transition-colors",
+                  personalize
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border hover:border-primary",
+                )}
+              >
+                Com personalização
+              </button>
+            </div>
+            {personalize && (
+              <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_120px]">
+                <div>
+                  <label htmlFor="pers-nome" className="text-xs text-muted-foreground">
+                    Nome na camisa
+                  </label>
+                  <Input
+                    id="pers-nome"
+                    value={playerName}
+                    maxLength={20}
+                    placeholder="Ex.: NEYMAR"
+                    onChange={(e) => setPlayerName(e.target.value.slice(0, 20))}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="pers-numero" className="text-xs text-muted-foreground">
+                    Número
+                  </label>
+                  <Input
+                    id="pers-numero"
+                    value={playerNumber}
+                    inputMode="numeric"
+                    maxLength={2}
+                    placeholder="10"
+                    onChange={(e) => setPlayerNumber(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="mt-6 flex items-center gap-4">
