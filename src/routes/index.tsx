@@ -39,6 +39,7 @@ const categories = [
   { slug: "europeus", label: "Europeus", desc: "Clubes da Europa" },
   { slug: "selecoes", label: "Seleções", desc: "Camisas de países" },
   { slug: "retro", label: "Retrô", desc: "Clássicos eternos" },
+  { slug: "nba", label: "NBA", desc: "Regatas e jerseys" },
 ];
 
 function Home() {
