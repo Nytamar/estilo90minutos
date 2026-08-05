@@ -65,7 +65,7 @@ function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/30" />
         <div className="relative mx-auto flex min-h-[78vh] max-h-[760px] max-w-7xl flex-col justify-center gap-6 px-4 py-20 sm:px-6">
           <span className="w-fit rounded-full border border-primary/40 px-4 py-1 text-xs uppercase tracking-[0.25em] text-primary animate-fade-up">
-            Coleção 2025/26
+            Coleção 2026/27
           </span>
           <h1 className="max-w-3xl text-5xl leading-[0.95] sm:text-7xl animate-fade-up">
             Vista o manto. <span className="gold-text">Sinta os 90 minutos.</span>
