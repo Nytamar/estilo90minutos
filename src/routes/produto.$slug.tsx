@@ -1,9 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Heart, Minus, Plus, Share2, ShieldCheck, Truck, MessageCircle } from "lucide-react";
+import { Heart, Minus, Plus, Share2, ShieldCheck, Truck, MessageCircle, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { productQuery, productsQuery, effectivePrice, totalStock } from "@/lib/catalog";
+import {
+  productQuery,
+  productsQuery,
+  effectivePrice,
+  totalStock,
+  availabilityOf,
+  PRE_ORDER_NOTICE,
+} from "@/lib/catalog";
+
 import { formatPrice, stockLabel, stockStatus } from "@/lib/format";
 import { buildWhatsAppOrderLink } from "@/lib/whatsapp";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -180,6 +188,17 @@ function ProdutoPage() {
           >
             {stockLabel[status]}
           </p>
+
+          {availabilityOf(product) === "encomenda" && (
+            <div className="mt-4 flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/5 p-4">
+              <Clock className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+              <p className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">Prazo de entrega:</span>{" "}
+                {PRE_ORDER_NOTICE}
+              </p>
+            </div>
+          )}
+
 
           <p className="mt-5 text-muted-foreground">{product.description}</p>
 

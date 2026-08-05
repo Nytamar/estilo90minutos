@@ -9,9 +9,10 @@ export const siteConfig = {
     "Camisas de futebol nacionais, europeias, seleções e retrô. Peça pelo WhatsApp com atendimento direto.",
   /** Número do WhatsApp que recebe os pedidos (DDI + DDD + número, só dígitos). */
   whatsappNumber: "5581997530414",
-  email: "contato@estilo90minutos.com.br",
+  email: "estillo90minutos@gmail.com",
   instagram: "https://instagram.com",
-  city: "Recife - PE",
+  city: "Ipojuca - Nossa Senhora do Ó",
+
 } as const;
 
 export const SIZES = ["P", "M", "G", "GG", "EXG"] as const;

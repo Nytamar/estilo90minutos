@@ -39,6 +39,11 @@ export const availabilityLabel: Record<Availability, string> = {
   encomenda: "Sob encomenda",
 };
 
+/** Aviso exibido em todas as peças sob encomenda. */
+export const PRE_ORDER_NOTICE =
+  "Peça sob encomenda: o prazo de produção e entrega é de 25 a 30 dias após a confirmação do pedido.";
+
+
 export function availabilityOf(product: { availability?: string | null }): Availability {
   return product.availability === "encomenda" ? "encomenda" : "pronta_entrega";
 }

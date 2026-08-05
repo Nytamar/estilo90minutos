@@ -10,7 +10,7 @@ import {
   PackageCheck,
   Clock,
 } from "lucide-react";
-import { productsQuery, availabilityOf, type Product } from "@/lib/catalog";
+import { productsQuery, availabilityOf, PRE_ORDER_NOTICE, type Product } from "@/lib/catalog";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
@@ -65,7 +65,7 @@ function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/30" />
         <div className="relative mx-auto flex min-h-[78vh] max-h-[760px] max-w-7xl flex-col justify-center gap-6 px-4 py-20 sm:px-6">
           <span className="w-fit rounded-full border border-primary/40 px-4 py-1 text-xs uppercase tracking-[0.25em] text-primary animate-fade-up">
-            Coleção 2025/26
+            Coleção 2026/27
           </span>
           <h1 className="max-w-3xl text-5xl leading-[0.95] sm:text-7xl animate-fade-up">
             Vista o manto. <span className="gold-text">Sinta os 90 minutos.</span>
@@ -133,12 +133,23 @@ function Home() {
         products={readyToShip}
         loading={isLoading}
       />
+      {madeToOrder.length > 0 && (
+        <div className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
+          <div className="surface-card flex items-start gap-3 rounded-xl border border-warning/40 p-4">
+            <Clock className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">Atenção:</span> {PRE_ORDER_NOTICE}
+            </p>
+          </div>
+        </div>
+      )}
       <ProductSection
         title="Disponíveis para encomenda"
         icon={<Clock className="h-5 w-5 text-primary" />}
         products={madeToOrder}
         loading={isLoading}
       />
+
       <ProductSection
         title="Em destaque"
         icon={<Sparkles className="h-5 w-5 text-primary" />}
