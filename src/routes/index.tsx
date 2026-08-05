@@ -133,12 +133,23 @@ function Home() {
         products={readyToShip}
         loading={isLoading}
       />
+      {madeToOrder.length > 0 && (
+        <div className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
+          <div className="surface-card flex items-start gap-3 rounded-xl border border-warning/40 p-4">
+            <Clock className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">Atenção:</span> {PRE_ORDER_NOTICE}
+            </p>
+          </div>
+        </div>
+      )}
       <ProductSection
         title="Disponíveis para encomenda"
         icon={<Clock className="h-5 w-5 text-primary" />}
         products={madeToOrder}
         loading={isLoading}
       />
+
       <ProductSection
         title="Em destaque"
         icon={<Sparkles className="h-5 w-5 text-primary" />}
