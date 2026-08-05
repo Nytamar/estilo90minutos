@@ -3,7 +3,15 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Heart, Minus, Plus, Share2, ShieldCheck, Truck, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
-import { productQuery, productsQuery, effectivePrice, totalStock } from "@/lib/catalog";
+import {
+  productQuery,
+  productsQuery,
+  effectivePrice,
+  totalStock,
+  availabilityOf,
+  PRE_ORDER_NOTICE,
+} from "@/lib/catalog";
+
 import { formatPrice, stockLabel, stockStatus } from "@/lib/format";
 import { buildWhatsAppOrderLink } from "@/lib/whatsapp";
 import { useFavorites } from "@/hooks/useFavorites";
