@@ -82,6 +82,28 @@ export function Header() {
         </div>
       </div>
 
+      {/* Barra de categorias (estilo marketplace) */}
+      <div className="border-t border-border/70 bg-secondary/40">
+        <nav className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 sm:px-6">
+          <Link
+            to="/catalogo"
+            className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-primary"
+          >
+            Todas
+          </Link>
+          {categoryTabs.map((c) => (
+            <Link
+              key={c.slug}
+              to="/catalogo"
+              search={{ categoria: c.slug }}
+              className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-primary"
+            >
+              {c.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+
       {open && (
         <nav className="border-t border-border/70 bg-background px-4 py-3 md:hidden">
           {links.map((l) => (
