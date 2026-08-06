@@ -272,7 +272,7 @@ function ProdutoPage() {
                     : "border-border hover:border-primary",
                 )}
               >
-                Com personalização
+                Com personalização (+{formatPrice(PERSONALIZATION_PRICE)})
               </button>
             </div>
             {personalize && (
