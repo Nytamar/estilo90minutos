@@ -12,7 +12,13 @@ export function Footer() {
           <span className="font-display text-2xl gold-text">{siteConfig.name}</span>
           <p className="mt-3 text-sm text-muted-foreground">{siteConfig.description}</p>
           <div className="mt-4 flex items-center gap-3 text-muted-foreground">
-            <a href={siteConfig.instagram} aria-label="Instagram" className="hover:text-primary">
+            <a
+              href={siteConfig.instagram}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram"
+              className="hover:text-primary"
+            >
               <Instagram className="h-5 w-5" />
             </a>
             <a

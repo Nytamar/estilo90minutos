@@ -12,6 +12,14 @@ const links = [
   { to: "/contato", label: "Contato" },
 ] as const;
 
+const categoryTabs = [
+  { slug: "nacionais", label: "Nacionais" },
+  { slug: "europeus", label: "Europeus" },
+  { slug: "selecoes", label: "Seleções" },
+  { slug: "retro", label: "Retrô" },
+  { slug: "nba", label: "NBA" },
+] as const;
+
 export function Header() {
   const [open, setOpen] = useState(false);
   const { favorites } = useFavorites();
@@ -72,6 +80,28 @@ export function Header() {
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
+      </div>
+
+      {/* Barra de categorias (estilo marketplace) */}
+      <div className="border-t border-border/70 bg-secondary/40">
+        <nav className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 sm:px-6">
+          <Link
+            to="/catalogo"
+            className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-primary"
+          >
+            Todas
+          </Link>
+          {categoryTabs.map((c) => (
+            <Link
+              key={c.slug}
+              to="/catalogo"
+              search={{ categoria: c.slug }}
+              className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-primary"
+            >
+              {c.label}
+            </Link>
+          ))}
+        </nav>
       </div>
 
       {open && (

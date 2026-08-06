@@ -43,6 +43,13 @@ export const availabilityLabel: Record<Availability, string> = {
 export const PRE_ORDER_NOTICE =
   "Peça sob encomenda: o prazo de produção e entrega é de 25 a 30 dias após a confirmação do pedido.";
 
+/** Valor adicional cobrado pela personalização (nome + número). */
+export const PERSONALIZATION_PRICE = 20;
+
+/** Aviso sobre tamanhos indisponíveis. */
+export const SIZE_ORDER_NOTICE =
+  "Não encontrou seu tamanho? Todos os tamanhos (P ao EXG) podem ser feitos sob encomenda — fale com a gente pelo WhatsApp. Prazo de 25 a 30 dias.";
+
 
 export function availabilityOf(product: { availability?: string | null }): Availability {
   return product.availability === "encomenda" ? "encomenda" : "pronta_entrega";

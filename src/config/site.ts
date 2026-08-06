@@ -10,7 +10,8 @@ export const siteConfig = {
   /** Número do WhatsApp que recebe os pedidos (DDI + DDD + número, só dígitos). */
   whatsappNumber: "5581997530414",
   email: "estillo90minutos@gmail.com",
-  instagram: "https://instagram.com",
+  instagram: "https://www.instagram.com/estilo90minutoss/",
+  instagramHandle: "@estilo90minutoss",
   city: "Ipojuca - Nossa Senhora do Ó",
 
 } as const;

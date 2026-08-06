@@ -10,6 +10,8 @@ import {
   totalStock,
   availabilityOf,
   PRE_ORDER_NOTICE,
+  PERSONALIZATION_PRICE,
+  SIZE_ORDER_NOTICE,
 } from "@/lib/catalog";
 
 import { formatPrice, stockLabel, stockStatus } from "@/lib/format";
@@ -40,12 +42,13 @@ export const Route = createFileRoute("/produto/$slug")({
   component: ProdutoPage,
 });
 
+/** Medidas reais (camisa adulto masculina) — largura do peito e altura recomendada da pessoa. */
 const sizeTable = [
-  { size: "P", chest: "50 cm", length: "70 cm" },
-  { size: "M", chest: "53 cm", length: "72 cm" },
-  { size: "G", chest: "56 cm", length: "74 cm" },
-  { size: "GG", chest: "59 cm", length: "76 cm" },
-  { size: "EXG", chest: "62 cm", length: "78 cm" },
+  { size: "P", chest: "52 cm", height: "1,62 m a 1,70 m" },
+  { size: "M", chest: "55 cm", height: "1,68 m a 1,76 m" },
+  { size: "G", chest: "58 cm", height: "1,74 m a 1,82 m" },
+  { size: "GG", chest: "61 cm", height: "1,80 m a 1,88 m" },
+  { size: "EXG", chest: "64 cm", height: "1,86 m a 1,95 m" },
 ];
 
 function ProdutoPage() {
@@ -78,6 +81,7 @@ function ProdutoPage() {
   if (!product) throw notFound();
 
   const price = effectivePrice(product);
+  const unitPrice = price + (personalize ? PERSONALIZATION_PRICE : 0);
   const hasDiscount = product.sale_price != null && product.sale_price < product.price;
   const stock = totalStock(product);
   const status = stockStatus(stock);
@@ -92,7 +96,7 @@ function ProdutoPage() {
   const whatsappLink = buildWhatsAppOrderLink({
     name: product.name,
     code: product.code,
-    price,
+    price: unitPrice,
     size: selectedSize ?? "-",
     quantity,
     url,
@@ -171,13 +175,18 @@ function ProdutoPage() {
           <h1 className="mt-2 text-4xl">{product.name}</h1>
 
           <div className="mt-4 flex items-baseline gap-3">
-            <span className="text-3xl font-semibold text-primary">{formatPrice(price)}</span>
+            <span className="text-3xl font-semibold text-primary">{formatPrice(unitPrice)}</span>
             {hasDiscount && (
               <span className="text-lg text-muted-foreground line-through">
-                {formatPrice(product.price)}
+                {formatPrice(product.price + (personalize ? PERSONALIZATION_PRICE : 0))}
               </span>
             )}
           </div>
+          {personalize && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {formatPrice(price)} + {formatPrice(PERSONALIZATION_PRICE)} de personalização
+            </p>
+          )}
           <p
             className={cn(
               "mt-2 text-sm font-medium",
@@ -233,6 +242,9 @@ function ProdutoPage() {
                 ? `${sizes.find((s) => s.size === selectedSize)?.stock ?? 0} unidade(s) do tamanho ${selectedSize}`
                 : "Selecione um tamanho"}
             </p>
+            <p className="mt-3 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
+              {SIZE_ORDER_NOTICE}
+            </p>
           </div>
 
           <div className="mt-6">
@@ -260,7 +272,7 @@ function ProdutoPage() {
                     : "border-border hover:border-primary",
                 )}
               >
-                Com personalização
+                Com personalização (+{formatPrice(PERSONALIZATION_PRICE)})
               </button>
             </div>
             {personalize && (
@@ -351,8 +363,8 @@ function ProdutoPage() {
               <thead className="bg-secondary text-left">
                 <tr>
                   <th className="px-3 py-2">Tamanho</th>
-                  <th className="px-3 py-2">Largura</th>
-                  <th className="px-3 py-2">Altura</th>
+                  <th className="px-3 py-2">Largura (peito)</th>
+                  <th className="px-3 py-2">Altura da pessoa</th>
                 </tr>
               </thead>
               <tbody>
@@ -360,7 +372,7 @@ function ProdutoPage() {
                   <tr key={row.size} className="border-t border-border">
                     <td className="px-3 py-2 font-medium">{row.size}</td>
                     <td className="px-3 py-2 text-muted-foreground">{row.chest}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{row.length}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{row.height}</td>
                   </tr>
                 ))}
               </tbody>
