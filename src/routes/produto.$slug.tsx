@@ -10,6 +10,8 @@ import {
   totalStock,
   availabilityOf,
   PRE_ORDER_NOTICE,
+  PERSONALIZATION_PRICE,
+  SIZE_ORDER_NOTICE,
 } from "@/lib/catalog";
 
 import { formatPrice, stockLabel, stockStatus } from "@/lib/format";
@@ -40,12 +42,13 @@ export const Route = createFileRoute("/produto/$slug")({
   component: ProdutoPage,
 });
 
+/** Medidas reais (camisa adulto masculina) — largura do peito e altura recomendada da pessoa. */
 const sizeTable = [
-  { size: "P", chest: "50 cm", length: "70 cm" },
-  { size: "M", chest: "53 cm", length: "72 cm" },
-  { size: "G", chest: "56 cm", length: "74 cm" },
-  { size: "GG", chest: "59 cm", length: "76 cm" },
-  { size: "EXG", chest: "62 cm", length: "78 cm" },
+  { size: "P", chest: "52 cm", height: "1,62 m a 1,70 m" },
+  { size: "M", chest: "55 cm", height: "1,68 m a 1,76 m" },
+  { size: "G", chest: "58 cm", height: "1,74 m a 1,82 m" },
+  { size: "GG", chest: "61 cm", height: "1,80 m a 1,88 m" },
+  { size: "EXG", chest: "64 cm", height: "1,86 m a 1,95 m" },
 ];
 
 function ProdutoPage() {
