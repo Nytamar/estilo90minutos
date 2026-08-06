@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Mail, MapPin, MessageCircle } from "lucide-react";
+import { Instagram, Mail, MapPin, MessageCircle } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { buildWhatsAppContactLink } from "@/lib/whatsapp";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,33 @@ function Contato() {
         <p className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-primary" /> {siteConfig.city}
         </p>
+        <p className="flex items-center gap-2">
+          <Instagram className="h-4 w-4 text-primary" />
+          <a
+            href={siteConfig.instagram}
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-primary"
+          >
+            {siteConfig.instagramHandle}
+          </a>
+        </p>
       </div>
+
+      <a
+        href={siteConfig.instagram}
+        target="_blank"
+        rel="noreferrer"
+        className="surface-card mt-6 flex items-center gap-3 rounded-2xl p-5 transition-colors hover:border-primary"
+      >
+        <Instagram className="h-6 w-6 text-primary" />
+        <span className="text-sm">
+          <span className="block font-semibold text-foreground">Siga no Instagram</span>
+          <span className="text-muted-foreground">
+            Novidades e lançamentos em {siteConfig.instagramHandle}
+          </span>
+        </span>
+      </a>
     </div>
   );
 }
