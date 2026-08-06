@@ -12,6 +12,14 @@ const links = [
   { to: "/contato", label: "Contato" },
 ] as const;
 
+const categoryTabs = [
+  { slug: "nacionais", label: "Nacionais" },
+  { slug: "europeus", label: "Europeus" },
+  { slug: "selecoes", label: "Seleções" },
+  { slug: "retro", label: "Retrô" },
+  { slug: "nba", label: "NBA" },
+] as const;
+
 export function Header() {
   const [open, setOpen] = useState(false);
   const { favorites } = useFavorites();
