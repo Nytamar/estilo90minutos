@@ -354,8 +354,8 @@ function ProdutoPage() {
               <thead className="bg-secondary text-left">
                 <tr>
                   <th className="px-3 py-2">Tamanho</th>
-                  <th className="px-3 py-2">Largura</th>
-                  <th className="px-3 py-2">Altura</th>
+                  <th className="px-3 py-2">Largura (peito)</th>
+                  <th className="px-3 py-2">Altura da pessoa</th>
                 </tr>
               </thead>
               <tbody>
@@ -363,7 +363,7 @@ function ProdutoPage() {
                   <tr key={row.size} className="border-t border-border">
                     <td className="px-3 py-2 font-medium">{row.size}</td>
                     <td className="px-3 py-2 text-muted-foreground">{row.chest}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{row.length}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{row.height}</td>
                   </tr>
                 ))}
               </tbody>
