@@ -242,6 +242,9 @@ function ProdutoPage() {
                 ? `${sizes.find((s) => s.size === selectedSize)?.stock ?? 0} unidade(s) do tamanho ${selectedSize}`
                 : "Selecione um tamanho"}
             </p>
+            <p className="mt-3 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
+              {SIZE_ORDER_NOTICE}
+            </p>
           </div>
 
           <div className="mt-6">
