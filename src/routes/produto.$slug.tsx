@@ -81,6 +81,7 @@ function ProdutoPage() {
   if (!product) throw notFound();
 
   const price = effectivePrice(product);
+  const unitPrice = price + (personalize ? PERSONALIZATION_PRICE : 0);
   const hasDiscount = product.sale_price != null && product.sale_price < product.price;
   const stock = totalStock(product);
   const status = stockStatus(stock);
@@ -95,7 +96,7 @@ function ProdutoPage() {
   const whatsappLink = buildWhatsAppOrderLink({
     name: product.name,
     code: product.code,
-    price,
+    price: unitPrice,
     size: selectedSize ?? "-",
     quantity,
     url,
