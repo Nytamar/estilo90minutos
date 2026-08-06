@@ -175,13 +175,18 @@ function ProdutoPage() {
           <h1 className="mt-2 text-4xl">{product.name}</h1>
 
           <div className="mt-4 flex items-baseline gap-3">
-            <span className="text-3xl font-semibold text-primary">{formatPrice(price)}</span>
+            <span className="text-3xl font-semibold text-primary">{formatPrice(unitPrice)}</span>
             {hasDiscount && (
               <span className="text-lg text-muted-foreground line-through">
-                {formatPrice(product.price)}
+                {formatPrice(product.price + (personalize ? PERSONALIZATION_PRICE : 0))}
               </span>
             )}
           </div>
+          {personalize && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {formatPrice(price)} + {formatPrice(PERSONALIZATION_PRICE)} de personalização
+            </p>
+          )}
           <p
             className={cn(
               "mt-2 text-sm font-medium",
