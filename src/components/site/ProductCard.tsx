@@ -77,16 +77,18 @@ export function ProductCard({ product }: { product: Product }) {
               </span>
             )}
           </div>
-          <p
-            className={cn(
-              "text-xs font-medium",
-              status === "in_stock" && "text-success",
-              status === "low_stock" && "text-warning",
-              status === "out_of_stock" && "text-muted-foreground",
-            )}
-          >
-            {stockLabel[status]}
-          </p>
+          {availability === "pronta_entrega" && (
+            <p
+              className={cn(
+                "text-xs font-medium",
+                status === "in_stock" && "text-success",
+                status === "low_stock" && "text-warning",
+                status === "out_of_stock" && "text-muted-foreground",
+              )}
+            >
+              {stockLabel[status]}
+            </p>
+          )}
         </div>
       </Link>
     </article>

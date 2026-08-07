@@ -187,16 +187,18 @@ function ProdutoPage() {
               {formatPrice(price)} + {formatPrice(PERSONALIZATION_PRICE)} de personalização
             </p>
           )}
-          <p
-            className={cn(
-              "mt-2 text-sm font-medium",
-              status === "in_stock" && "text-success",
-              status === "low_stock" && "text-warning",
-              status === "out_of_stock" && "text-muted-foreground",
-            )}
-          >
-            {stockLabel[status]}
-          </p>
+          {availabilityOf(product) === "pronta_entrega" && (
+            <p
+              className={cn(
+                "mt-2 text-sm font-medium",
+                status === "in_stock" && "text-success",
+                status === "low_stock" && "text-warning",
+                status === "out_of_stock" && "text-muted-foreground",
+              )}
+            >
+              {stockLabel[status]}
+            </p>
+          )}
 
           {availabilityOf(product) === "encomenda" && (
             <div className="mt-4 flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/5 p-4">
