@@ -44,16 +44,27 @@ function AdminLayout() {
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
         <h1 className="text-3xl">Acesso restrito</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          Sua conta ({session.user.email}) ainda não tem permissão de administrador. Peça a um
-          administrador para liberar seu acesso.
+          Sua conta ({session.user.email}) ainda não tem permissão de administrador. Se você é o
+          dono da loja e este é o primeiro acesso, clique abaixo para se tornar administrador.
         </p>
-        <Button
-          className="mt-6"
-          variant="outline"
-          onClick={() => void supabase.auth.signOut()}
-        >
-          Sair
-        </Button>
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <Button
+            onClick={async () => {
+              const { data, error } = await supabase.rpc("claim_admin");
+              if (error || !data) {
+                toast.error("Já existe um administrador nesta loja.");
+                return;
+              }
+              toast.success("Acesso de administrador liberado!");
+              window.location.reload();
+            }}
+          >
+            Tornar-me administrador
+          </Button>
+          <Button variant="outline" onClick={() => void supabase.auth.signOut()}>
+            Sair
+          </Button>
+        </div>
       </div>
     );
   }
