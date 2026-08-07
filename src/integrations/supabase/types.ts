@@ -266,6 +266,8 @@ export type Database = {
       }
     }
     Functions: {
+      admin_exists: { Args: never; Returns: boolean }
+      claim_admin: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
