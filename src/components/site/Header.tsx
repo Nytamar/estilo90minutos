@@ -1,16 +1,10 @@
-import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Heart, Menu, Search, ShieldCheck, X } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
-
-const links = [
-  { to: "/", label: "Início" },
-  { to: "/catalogo", label: "Catálogo" },
-  { to: "/sobre", label: "Sobre" },
-  { to: "/contato", label: "Contato" },
-] as const;
+import logoAsset from "@/assets/logo-estilo90.png.asset.json";
 
 const categoryTabs = [
   { slug: "nacionais", label: "Nacionais" },
@@ -20,41 +14,54 @@ const categoryTabs = [
   { slug: "nba", label: "NBA" },
 ] as const;
 
+const extraLinks = [
+  { to: "/sobre", label: "Sobre" },
+  { to: "/contato", label: "Contato" },
+] as const;
+
 export function Header() {
   const [open, setOpen] = useState(false);
+  const [term, setTerm] = useState("");
   const { favorites } = useFavorites();
+  const navigate = useNavigate();
+
+  function onSearch(e: FormEvent) {
+    e.preventDefault();
+    navigate({ to: "/catalogo", search: term.trim() ? { q: term.trim() } : {} });
+    setOpen(false);
+  }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary font-display text-lg text-primary-foreground">
-            90
-          </span>
-          <span className="font-display text-xl leading-none tracking-wide gold-text">
-            {siteConfig.name}
-          </span>
+    <header className="sticky top-0 z-50 border-b border-border bg-background">
+      <div className="h-1 w-full bg-primary" />
+
+      <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4 sm:px-6">
+        <Link to="/" className="flex shrink-0 items-center" aria-label={`${siteConfig.name} — Home`}>
+          <img
+            src={logoAsset.url}
+            alt={`${siteConfig.name} logo`}
+            width={1920}
+            height={512}
+            className="h-11 w-auto sm:h-12"
+          />
         </Link>
 
-        <nav className="ml-6 hidden items-center gap-6 md:flex">
-          {links.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-              activeProps={{ className: "text-primary" }}
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
+        <form onSubmit={onSearch} className="ml-2 hidden flex-1 md:block">
+          <div className="flex items-center gap-2 rounded-full bg-secondary px-5 py-3">
+            <input
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              placeholder="O que você procura?"
+              aria-label="Buscar produtos"
+              className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            />
+            <button type="submit" aria-label="Buscar">
+              <Search className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
+            </button>
+          </div>
+        </form>
 
         <div className="ml-auto flex items-center gap-1">
-          <Button asChild variant="ghost" size="icon" aria-label="Buscar produtos">
-            <Link to="/catalogo">
-              <Search className="h-5 w-5" />
-            </Link>
-          </Button>
           <Button asChild variant="ghost" size="icon" aria-label="Favoritos">
             <Link to="/favoritos" className="relative">
               <Heart className="h-5 w-5" />
@@ -82,41 +89,83 @@ export function Header() {
         </div>
       </div>
 
-      {/* Barra de categorias (estilo marketplace) */}
-      <div className="border-t border-border/70 bg-secondary/40">
-        <nav className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 sm:px-6">
+      {/* Barra de categorias */}
+      <div className="hidden border-t border-border md:block">
+        <nav className="mx-auto flex max-w-7xl items-center justify-center gap-8 overflow-x-auto px-4 py-3 sm:px-6">
           <Link
-            to="/catalogo"
-            className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-primary"
+            to="/novidades"
+            className="whitespace-nowrap text-sm font-bold text-primary transition-colors hover:opacity-80"
           >
-            Todas
+            Novidades
           </Link>
           {categoryTabs.map((c) => (
             <Link
               key={c.slug}
               to="/catalogo"
               search={{ categoria: c.slug }}
-              className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-primary"
+              className="whitespace-nowrap text-sm font-bold text-foreground transition-colors hover:text-primary"
             >
               {c.label}
+            </Link>
+          ))}
+          {extraLinks.map((l) => (
+            <Link
+              key={l.to}
+              to={l.to}
+              className="whitespace-nowrap text-sm font-bold text-foreground transition-colors hover:text-primary"
+              activeProps={{ className: "text-primary" }}
+            >
+              {l.label}
             </Link>
           ))}
         </nav>
       </div>
 
       {open && (
-        <nav className="border-t border-border/70 bg-background px-4 py-3 md:hidden">
-          {links.map((l) => (
+        <div className="border-t border-border bg-background px-4 py-3 md:hidden">
+          <form onSubmit={onSearch} className="mb-3">
+            <div className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2.5">
+              <input
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+                placeholder="O que você procura?"
+                aria-label="Buscar produtos"
+                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              />
+              <button type="submit" aria-label="Buscar">
+                <Search className="h-5 w-5 text-muted-foreground" />
+              </button>
+            </div>
+          </form>
+          <Link
+            to="/novidades"
+            onClick={() => setOpen(false)}
+            className="block rounded-md px-2 py-2.5 text-sm font-bold text-primary"
+          >
+            Novidades
+          </Link>
+          {categoryTabs.map((c) => (
+            <Link
+              key={c.slug}
+              to="/catalogo"
+              search={{ categoria: c.slug }}
+              onClick={() => setOpen(false)}
+              className="block rounded-md px-2 py-2.5 text-sm font-semibold text-foreground hover:bg-accent"
+            >
+              {c.label}
+            </Link>
+          ))}
+          {extraLinks.map((l) => (
             <Link
               key={l.to}
               to={l.to}
               onClick={() => setOpen(false)}
-              className="block rounded-md px-2 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary"
+              className="block rounded-md px-2 py-2.5 text-sm font-semibold text-foreground hover:bg-accent"
             >
               {l.label}
             </Link>
           ))}
-        </nav>
+        </div>
       )}
     </header>
   );
