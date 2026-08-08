@@ -4,7 +4,7 @@ import { Heart, Menu, Search, ShieldCheck, X } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
-import logoAsset from "@/assets/logo-estilo90.png.asset.json";
+import logoAsset from "@/public/logo-90.png.asset.json";
 
 const categoryTabs = [
   { slug: "nacionais", label: "Nacionais" },
@@ -38,7 +38,7 @@ export function Header() {
       <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4 sm:px-6">
         <Link to="/" className="flex shrink-0 items-center" aria-label={`${siteConfig.name} — Home`}>
           <img
-            src="/logo-nova.png"
+            src="/logo-90.png"
             alt={`${siteConfig.name} logo`}
             width={1920}
             height={512}
