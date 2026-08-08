@@ -81,6 +81,8 @@ function ProdutoEditor() {
   const [form, setForm] = useState<Form>(emptyForm);
   const [stock, setStock] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
 
   const { data: product } = useQuery({
     queryKey: ["admin-product", id],
