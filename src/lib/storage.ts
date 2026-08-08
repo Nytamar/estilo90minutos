@@ -12,12 +12,13 @@ function extOf(file: File): string {
 }
 
 /**
- * Envia a imagem para o Storage e devolve uma URL utilizável no site.
+ * Envia uma imagem para o Storage e devolve uma URL utilizável no site.
  * Usa a URL pública quando o bucket é público; caso contrário gera uma URL
  * assinada de longa duração.
  */
-export async function uploadProductImage(file: File): Promise<string> {
-  const path = `${crypto.randomUUID()}.${extOf(file)}`;
+export async function uploadImage(file: File, folder = ""): Promise<string> {
+  const prefix = folder ? `${folder.replace(/\/+$/, "")}/` : "";
+  const path = `${prefix}${crypto.randomUUID()}.${extOf(file)}`;
   const { error } = await supabase.storage
     .from(PRODUCT_BUCKET)
     .upload(path, file, { cacheControl: "31536000", upsert: false, contentType: file.type });
@@ -36,4 +37,14 @@ export async function uploadProductImage(file: File): Promise<string> {
     .createSignedUrl(path, SIGNED_URL_TTL);
   if (signErr || !data) throw signErr ?? new Error("Não foi possível gerar o link da imagem.");
   return data.signedUrl;
+}
+
+/** Upload de foto de produto. */
+export function uploadProductImage(file: File): Promise<string> {
+  return uploadImage(file, "produtos");
+}
+
+/** Upload de imagem de banner da home. */
+export function uploadBannerImage(file: File): Promise<string> {
+  return uploadImage(file, "banners");
 }
