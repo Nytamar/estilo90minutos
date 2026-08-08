@@ -46,6 +46,7 @@ const categories = [
 
 function Home() {
   const { data: products = [], isLoading } = useQuery(productsQuery());
+  const { data: banners = [] } = useQuery(bannersQuery());
 
   const featured = products.filter((p) => p.featured).slice(0, 4);
   const recent = products.slice(0, 4);
@@ -55,6 +56,8 @@ function Home() {
 
   return (
     <div>
+      {banners.length > 0 && <BannerCarousel banners={banners} />}
+
       {/* Hero */}
       <section className="relative overflow-hidden">
         <img
