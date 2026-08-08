@@ -122,6 +122,36 @@ function ProdutoEditor() {
     setStock(map);
   }, [product]);
 
+  const imageList = form.images
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  function removeImage(url: string) {
+    set("images", imageList.filter((u) => u !== url).join("\n"));
+  }
+
+  async function handleUpload(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files)) {
+        urls.push(await uploadProductImage(file));
+      }
+      setForm((f) => ({
+        ...f,
+        images: [...f.images.split("\n").map((s) => s.trim()).filter(Boolean), ...urls].join("\n"),
+      }));
+      toast.success(urls.length > 1 ? `${urls.length} imagens enviadas` : "Imagem enviada");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Falha ao enviar a imagem");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
     const parsed = schema.safeParse({
