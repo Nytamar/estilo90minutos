@@ -11,6 +11,8 @@ import {
   Clock,
 } from "lucide-react";
 import { productsQuery, availabilityOf, PRE_ORDER_NOTICE, type Product } from "@/lib/catalog";
+import { bannersQuery } from "@/lib/banners";
+import { BannerCarousel } from "@/components/site/BannerCarousel";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
