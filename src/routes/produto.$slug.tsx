@@ -132,9 +132,26 @@ function ProdutoPage() {
       </nav>
 
       <div className="grid gap-10 lg:grid-cols-2">
-        <div>
+        <div className="flex flex-col-reverse gap-3 sm:flex-row">
+          {images.length > 1 && (
+            <div className="flex gap-3 overflow-x-auto sm:w-20 sm:flex-col sm:overflow-visible">
+              {images.map((img, i) => (
+                <button
+                  key={img + i}
+                  onClick={() => setActiveImage(i)}
+                  className={cn(
+                    "h-20 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-card transition-colors sm:h-24 sm:w-20",
+                    activeImage === i ? "border-primary" : "border-border hover:border-primary/50",
+                  )}
+                  aria-label={`Imagem ${i + 1}`}
+                >
+                  <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
           <div
-            className="surface-card overflow-hidden rounded-2xl"
+            className="surface-card min-w-0 flex-1 overflow-hidden rounded-2xl"
             onMouseEnter={() => setZoom(true)}
             onMouseLeave={() => setZoom(false)}
           >
@@ -149,23 +166,6 @@ function ProdutoPage() {
               )}
             />
           </div>
-          {images.length > 1 && (
-            <div className="mt-3 flex gap-3">
-              {images.map((img, i) => (
-                <button
-                  key={img + i}
-                  onClick={() => setActiveImage(i)}
-                  className={cn(
-                    "h-20 w-16 overflow-hidden rounded-lg border",
-                    activeImage === i ? "border-primary" : "border-border",
-                  )}
-                  aria-label={`Imagem ${i + 1}`}
-                >
-                  <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         <div>
