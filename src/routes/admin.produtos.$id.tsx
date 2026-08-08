@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ImagePlus, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadProductImage } from "@/lib/storage";
+
 import { taxonomiesQuery } from "@/lib/catalog";
 import type { Product, Taxonomy } from "@/lib/catalog";
 import { slugify } from "@/lib/format";
