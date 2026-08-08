@@ -4,7 +4,7 @@ import { Heart, Menu, Search, ShieldCheck, X } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
-import logoAsset from "@/assets/logo-estilo90.png.asset.json";
+import logoAsset from "@/public/logo-estilo90.png.asset.json";
 
 const categoryTabs = [
   { slug: "nacionais", label: "Nacionais" },
