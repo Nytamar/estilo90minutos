@@ -38,7 +38,7 @@ export function Header() {
       <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4 sm:px-6">
         <Link to="/" className="flex shrink-0 items-center" aria-label={`${siteConfig.name} — Home`}>
           <img
-            src={logoAsset.url}
+            src={siteConfig.logo}
             alt={`${siteConfig.name} logo`}
             width={1920}
             height={512}
