@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ImagePlus, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadProductImage } from "@/lib/storage";
+
 import { taxonomiesQuery } from "@/lib/catalog";
 import type { Product, Taxonomy } from "@/lib/catalog";
 import { slugify } from "@/lib/format";
@@ -81,6 +84,8 @@ function ProdutoEditor() {
   const [form, setForm] = useState<Form>(emptyForm);
   const [stock, setStock] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
 
   const { data: product } = useQuery({
     queryKey: ["admin-product", id],
@@ -121,6 +126,36 @@ function ProdutoEditor() {
     });
     setStock(map);
   }, [product]);
+
+  const imageList = form.images
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  function removeImage(url: string) {
+    set("images", imageList.filter((u) => u !== url).join("\n"));
+  }
+
+  async function handleUpload(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files)) {
+        urls.push(await uploadProductImage(file));
+      }
+      setForm((f) => ({
+        ...f,
+        images: [...f.images.split("\n").map((s) => s.trim()).filter(Boolean), ...urls].join("\n"),
+      }));
+      toast.success(urls.length > 1 ? `${urls.length} imagens enviadas` : "Imagem enviada");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Falha ao enviar a imagem");
+    } finally {
+      setUploading(false);
+    }
+  }
+
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -231,15 +266,52 @@ function ProdutoEditor() {
           />
         </div>
         <div className="sm:col-span-2">
-          <Label htmlFor="imgs">Imagens (uma URL por linha)</Label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Label htmlFor="imgs">Imagens (uma URL por linha)</Label>
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent">
+              <ImagePlus className="h-4 w-4" />
+              {uploading ? "Enviando..." : "Enviar fotos"}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                disabled={uploading}
+                onChange={(e) => void handleUpload(e.target.files)}
+              />
+            </label>
+          </div>
           <Textarea
             id="imgs"
             rows={3}
+            className="mt-2"
             placeholder="/images/jersey-1.jpg"
             value={form.images}
             onChange={(e) => set("images", e.target.value)}
           />
+          {imageList.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-3">
+              {imageList.map((url) => (
+                <div key={url} className="relative">
+                  <img
+                    src={url}
+                    alt="Prévia da imagem do produto"
+                    className="h-24 w-24 rounded-md border object-cover"
+                  />
+                  <button
+                    type="button"
+                    aria-label="Remover imagem"
+                    onClick={() => removeImage(url)}
+                    className="absolute -right-2 -top-2 rounded-full border bg-background p-1 text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
 
         {relations.map((r) => (
           <div key={r.field}>
