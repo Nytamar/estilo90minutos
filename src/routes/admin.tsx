@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { BarChart3, LogOut, Shirt, Tags, Ticket } from "lucide-react";
+import { BarChart3, Images, LogOut, Shirt, Tags, Ticket } from "lucide-react";
 import { toast } from "sonner";
 import { useAdminSession } from "@/hooks/useAdmin";
 import { supabase } from "@/integrations/supabase/client";
