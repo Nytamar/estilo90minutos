@@ -231,15 +231,52 @@ function ProdutoEditor() {
           />
         </div>
         <div className="sm:col-span-2">
-          <Label htmlFor="imgs">Imagens (uma URL por linha)</Label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Label htmlFor="imgs">Imagens (uma URL por linha)</Label>
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-accent">
+              <ImagePlus className="h-4 w-4" />
+              {uploading ? "Enviando..." : "Enviar fotos"}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                disabled={uploading}
+                onChange={(e) => void handleUpload(e.target.files)}
+              />
+            </label>
+          </div>
           <Textarea
             id="imgs"
             rows={3}
+            className="mt-2"
             placeholder="/images/jersey-1.jpg"
             value={form.images}
             onChange={(e) => set("images", e.target.value)}
           />
+          {imageList.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-3">
+              {imageList.map((url) => (
+                <div key={url} className="relative">
+                  <img
+                    src={url}
+                    alt="Prévia da imagem do produto"
+                    className="h-24 w-24 rounded-md border object-cover"
+                  />
+                  <button
+                    type="button"
+                    aria-label="Remover imagem"
+                    onClick={() => removeImage(url)}
+                    className="absolute -right-2 -top-2 rounded-full border bg-background p-1 text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
 
         {relations.map((r) => (
           <div key={r.field}>
