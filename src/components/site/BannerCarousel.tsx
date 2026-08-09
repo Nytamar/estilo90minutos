@@ -87,12 +87,12 @@ function BannerSlide({ banner, priority }: { banner: Banner; priority: boolean }
         src={banner.image_url}
         alt={banner.title || "Banner promocional"}
         loading={priority ? "eager" : "lazy"}
-        className="h-full w-full object-cover"
+        className="block h-auto w-full"
       />
     </picture>
   );
 
-  const wrapper = "block h-[42vw] max-h-[420px] min-h-[160px] w-full shrink-0";
+  const wrapper = "block w-full shrink-0 sm:h-[42vw] sm:max-h-[420px] sm:min-h-[160px]";
 
   if (banner.link_url) {
     const external = /^https?:\/\//i.test(banner.link_url);
