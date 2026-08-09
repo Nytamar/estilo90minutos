@@ -57,10 +57,29 @@ function ProdutoPage() {
   const { data: all = [] } = useQuery(productsQuery());
   const { isFavorite, toggle } = useFavorites();
 
-  const [activeImage, setActiveImage] = useState(0);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
-  const [zoom, setZoom] = useState(false);
+const [activeImage, setActiveImage] = useState(0);
+const [selectedSize, setSelectedSize] = useState<string | null>(null);
+const [quantity, setQuantity] = useState(1);
+
+const [zoom, setZoom] = useState(false);
+const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
+
+function updateZoomPosition(
+  clientX: number,
+  clientY: number,
+  element: HTMLElement,
+) {
+  const rect = element.getBoundingClientRect();
+
+  const x = ((clientX - rect.left) / rect.width) * 100;
+  const y = ((clientY - rect.top) / rect.height) * 100;
+
+  setZoomPosition({
+    x: Math.max(0, Math.min(100, x)),
+    y: Math.max(0, Math.min(100, y)),
+  });
+}
+  
   const [personalize, setPersonalize] = useState(false);
   const [playerName, setPlayerName] = useState("");
   const [playerNumber, setPlayerNumber] = useState("");
@@ -152,18 +171,67 @@ function ProdutoPage() {
           )}
           <div
             className="surface-card min-w-0 flex-1 overflow-hidden rounded-2xl"
-            onMouseEnter={() => setZoom(true)}
-            onMouseLeave={() => setZoom(false)}
+            onMouseEnter={(e) => {
+              setZoom(true);
+          
+              updateZoomPosition(
+                e.clientX,
+                e.clientY,
+                e.currentTarget,
+              );
+            }}
+            onMouseMove={(e) => {
+              updateZoomPosition(
+                e.clientX,
+                e.clientY,
+                e.currentTarget,
+              );
+            }}
+            onMouseLeave={() => {
+              setZoom(false);
+              setZoomPosition({ x: 50, y: 50 });
+            }}
+            onTouchStart={(e) => {
+              const touch = e.touches[0];
+
+              setZoom(true);
+
+              updateZoomPosition(
+                touch.clientX,
+                touch.clientY,
+                e.currentTarget,
+              );
+            }}
+            onTouchMove={(e) => {
+              if (!zoom) return;
+
+              const touch = e.touches[0];
+
+              updateZoomPosition(
+                touch.clientX,
+                touch.clientY,
+                e.currentTarget,
+              );
+            }}
+            onTouchEnd={() => {
+              setZoom(false);
+              setZoomPosition({ x: 50, y: 50 });
+            }}
           >
             <img
               src={images[activeImage]}
               alt={`Camisa ${product.name}`}
               width={900}
               height={1100}
+              draggable={false}
               className={cn(
-                "aspect-[4/5] w-full object-cover transition-transform duration-500",
-                zoom && "scale-125",
+                "aspect-[4/5] w-full object-cover select-none",
+                "transition-transform duration-150 ease-out",
+                zoom && "scale-[2]",
               )}
+              style={{
+                transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+              }}
             />
           </div>
         </div>
