@@ -132,7 +132,7 @@ function ProdutoPage() {
       </nav>
 
       <div className="grid gap-10 lg:grid-cols-2">
-        <div className="flex flex-col-reverse gap-3 sm:flex-row">
+        <div className="flex h-fit flex-col-reverse gap-3 self-start sm:flex-row">
           {images.length > 1 && (
             <div className="flex gap-3 overflow-x-auto sm:w-20 sm:flex-col sm:overflow-visible">
               {images.map((img, i) => (
