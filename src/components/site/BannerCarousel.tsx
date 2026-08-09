@@ -92,7 +92,7 @@ function BannerSlide({ banner, priority }: { banner: Banner; priority: boolean }
     </picture>
   );
 
-  const wrapper = "block w-full shrink-0 sm:h-[42vw] sm:max-h-[420px] sm:min-h-[160px]";
+  const wrapper = "block w-full shrink-0";
 
   if (banner.link_url) {
     const external = /^https?:\/\//i.test(banner.link_url);
