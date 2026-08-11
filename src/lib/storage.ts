@@ -48,3 +48,8 @@ export function uploadProductImage(file: File): Promise<string> {
 export function uploadBannerImage(file: File): Promise<string> {
   return uploadImage(file, "banners");
 }
+
+/** Upload de imagem de novidade da home. */
+export function uploadHomePromotionImage(file: File): Promise<string> {
+  return uploadImage(file, "novidades");
+}
