@@ -122,7 +122,7 @@ export function HomePromotions({
                   sm:w-[55vw]
 
                   /* DESKTOP */
-                  lg:w-[calc((100%-2rem)/3)]
+                  lg:w-[calc((100%_-_2rem)/3)]
                 "
               >
                 {content}
