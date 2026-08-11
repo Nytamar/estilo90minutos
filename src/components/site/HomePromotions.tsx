@@ -88,16 +88,15 @@ export function HomePromotions({
                 )}
 
                 <img
-                  src={promotion.image_url}
-                  alt={promotion.title || "Novidade"}
-                  loading="lazy"
-                  draggable={false}
-                  className="
-                    block
-                    aspect-[2/1]
-                    w-full
-                    select-none
-                    object-cover
+                 src={promotion.image_url}
+                 alt={promotion.title || "Novidade"}
+                 loading="lazy"
+                 draggable={false}
+                 className="
+                   block
+                   h-auto
+                   w-full
+                   select-none
                   "
                 />
               </picture>
