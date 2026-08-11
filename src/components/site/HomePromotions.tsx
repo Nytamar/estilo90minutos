@@ -9,65 +9,125 @@ export function HomePromotions({
   if (promotions.length === 0) return null;
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <section className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
+      <div
+        className="
+          flex
+          gap-4
+          overflow-x-auto
+          overscroll-x-contain
+          pb-2
+          snap-x
+          snap-mandatory
+          scrollbar-none
+          touch-pan-x
+        "
+      >
         {promotions.map((promotion) => {
           const content = (
-            <picture className="block overflow-hidden rounded-xl">
+            <picture className="block">
               {promotion.mobile_image_url && (
                 <source
                   media="(max-width: 640px)"
-                  srcSet={promotion.mobile_image_url}
+                  srcSet={
+                    promotion.mobile_image_url
+                  }
                 />
               )}
 
               <img
                 src={promotion.image_url}
-                alt={promotion.title || "Novidade"}
+                alt={
+                  promotion.title ||
+                  "Novidade"
+                }
                 loading="lazy"
+                draggable={false}
                 className="
                   block
-                  aspect-[2.1/1]
+                  h-auto
                   w-full
+                  select-none
                   object-cover
                   transition-transform
-                  duration-500
-                  hover:scale-[1.02]
+                  duration-300
+                  group-hover:scale-[1.015]
                 "
               />
             </picture>
           );
 
+          const card = (
+            <div
+              className="
+                group
+                w-[88vw]
+                shrink-0
+                snap-center
+                overflow-hidden
+                rounded-xl
+                border
+                border-border/50
+                bg-card
+                shadow-sm
+                sm:w-[520px]
+                lg:w-[calc((100vw-7rem)/3)]
+                lg:max-w-[420px]
+              "
+            >
+              {content}
+            </div>
+          );
+
           if (!promotion.link_url) {
             return (
               <div key={promotion.id}>
-                {content}
+                {card}
               </div>
             );
           }
 
-          const external = /^https?:\/\//i.test(promotion.link_url);
+          const external =
+            /^https?:\/\//i.test(
+              promotion.link_url,
+            );
 
-          return external ? (
-            <a
-              key={promotion.id}
-              href={promotion.link_url}
-              target={promotion.new_tab ? "_blank" : undefined}
-              rel={promotion.new_tab ? "noreferrer" : undefined}
-              className="block"
-            >
-              {content}
-            </a>
-          ) : (
+          if (external) {
+            return (
+              <a
+                key={promotion.id}
+                href={promotion.link_url}
+                target={
+                  promotion.new_tab
+                    ? "_blank"
+                    : undefined
+                }
+                rel={
+                  promotion.new_tab
+                    ? "noreferrer"
+                    : undefined
+                }
+                className="block"
+              >
+                {card}
+              </a>
+            );
+          }
+
+          return (
             <Link
               key={promotion.id}
               to={promotion.link_url}
               className="block"
             >
-              {content}
+              {card}
             </Link>
           );
         })}
+      </div>
+    </section>
+  );
+}
       </div>
     </section>
   );
