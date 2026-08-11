@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { BarChart3, Images, LogOut, Shirt, Tags, Ticket } from "lucide-react";
+import { BarChart3, Images, LogOut, Shirt, Tags, Ticket, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useAdminSession } from "@/hooks/useAdmin";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,7 @@ const nav = [
   { to: "/admin", label: "Dashboard", icon: BarChart3, exact: true },
   { to: "/admin/produtos", label: "Produtos", icon: Shirt, exact: false },
   { to: "/admin/banners", label: "Banners", icon: Images, exact: false },
+  { to: "/admin/novidades", label: "Novidades", icon: Sparkles, exact: false },
   { to: "/admin/taxonomias", label: "Categorias & marcas", icon: Tags, exact: false },
   { to: "/admin/cupons", label: "Cupons", icon: Ticket, exact: false },
 ] as const;
