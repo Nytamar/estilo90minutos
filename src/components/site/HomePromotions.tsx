@@ -19,8 +19,8 @@ export function HomePromotions({
           pb-2
           snap-x
           snap-mandatory
-          scrollbar-none
           touch-pan-x
+          scrollbar-none
         "
       >
         {promotions.map((promotion) => {
@@ -29,18 +29,13 @@ export function HomePromotions({
               {promotion.mobile_image_url && (
                 <source
                   media="(max-width: 640px)"
-                  srcSet={
-                    promotion.mobile_image_url
-                  }
+                  srcSet={promotion.mobile_image_url}
                 />
               )}
 
               <img
                 src={promotion.image_url}
-                alt={
-                  promotion.title ||
-                  "Novidade"
-                }
+                alt={promotion.title || "Novidade"}
                 loading="lazy"
                 draggable={false}
                 className="
@@ -87,10 +82,9 @@ export function HomePromotions({
             );
           }
 
-          const external =
-            /^https?:\/\//i.test(
-              promotion.link_url,
-            );
+          const external = /^https?:\/\//i.test(
+            promotion.link_url,
+          );
 
           if (external) {
             return (
@@ -98,14 +92,10 @@ export function HomePromotions({
                 key={promotion.id}
                 href={promotion.link_url}
                 target={
-                  promotion.new_tab
-                    ? "_blank"
-                    : undefined
+                  promotion.new_tab ? "_blank" : undefined
                 }
                 rel={
-                  promotion.new_tab
-                    ? "noreferrer"
-                    : undefined
+                  promotion.new_tab ? "noreferrer" : undefined
                 }
                 className="block"
               >
@@ -124,10 +114,6 @@ export function HomePromotions({
             </Link>
           );
         })}
-      </div>
-    </section>
-  );
-}
       </div>
     </section>
   );
