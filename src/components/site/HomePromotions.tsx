@@ -78,6 +78,14 @@ export function HomePromotions({
           "
         >
           {promotions.map((promotion) => {
+            const cardWrapperClass = `
+              flex-none
+              snap-start
+              w-[78vw]
+              sm:w-[55vw]
+              lg:w-[calc((100%_-_2rem)/3)]
+            `;
+
             const content = (
               <picture className="block">
                 {promotion.mobile_image_url && (
@@ -106,23 +114,13 @@ export function HomePromotions({
               <div
                 className="
                   group
-                  shrink-0
-                  snap-start
+                  w-full
                   overflow-hidden
                   rounded-xl
                   border
                   border-border/50
                   bg-card
                   shadow-sm
-
-                  /* MOBILE */
-                  w-[78vw]
-
-                  /* TABLET */
-                  sm:w-[55vw]
-
-                  /* DESKTOP */
-                  lg:w-[calc((100%_-_2rem)/3)]
                 "
               >
                 {content}
@@ -131,7 +129,7 @@ export function HomePromotions({
 
             if (!promotion.link_url) {
               return (
-                <div key={promotion.id}>
+                <div key={promotion.id} className={cardWrapperClass}>
                   {card}
                 </div>
               );
@@ -152,7 +150,7 @@ export function HomePromotions({
                   rel={
                     promotion.new_tab ? "noreferrer" : undefined
                   }
-                  className="block"
+                  className={cardWrapperClass}
                 >
                   {card}
                 </a>
@@ -163,7 +161,7 @@ export function HomePromotions({
               <Link
                 key={promotion.id}
                 to={promotion.link_url}
-                className="block"
+                className={cardWrapperClass}
               >
                 {card}
               </Link>
