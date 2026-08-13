@@ -17,7 +17,7 @@ export const siteConfig = {
   whatsappNumber: "5581997530414",
   email: "estillo90minutos@gmail.com",
   instagram: "https://www.instagram.com/estilo90minutoss/",
-  instagramHandle: "@estilo90minutoss",
+  instagramHandle: "@estillo90minutoss",
   city: "Ipojuca - Nossa Senhora do Ó",
 
 } as const;
