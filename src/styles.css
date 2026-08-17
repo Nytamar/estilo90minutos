@@ -205,13 +205,13 @@
 }
 
 .home-ticker-track {
-  animation: home-ticker-scroll 35s linear infinite;
+  animation: home-ticker-scroll 60s linear infinite;
   will-change: transform;
 }
 
 @media (max-width: 640px) {
   .home-ticker-track {
-    animation-duration: 28s;
+    animation-duration: 50s;
   }
 }
 
