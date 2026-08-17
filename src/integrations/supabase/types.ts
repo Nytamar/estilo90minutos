@@ -173,6 +173,39 @@ export type Database = {
           },
         ]
       }
+      home_ticker_messages: {
+  Row: {
+    id: string
+    text: string
+    link_url: string | null
+    new_tab: boolean
+    position: number
+    active: boolean
+    created_at: string
+    updated_at: string
+  }
+  Insert: {
+    id?: string
+    text: string
+    link_url?: string | null
+    new_tab?: boolean
+    position?: number
+    active?: boolean
+    created_at?: string
+    updated_at?: string
+  }
+  Update: {
+    id?: string
+    text?: string
+    link_url?: string | null
+    new_tab?: boolean
+    position?: number
+    active?: boolean
+    created_at?: string
+    updated_at?: string
+  }
+  Relationships: []
+}
       products: {
         Row: {
           active: boolean
