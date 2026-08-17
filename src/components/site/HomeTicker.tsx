@@ -80,7 +80,7 @@ export function HomeTicker({
 
               <span
                 aria-hidden="true"
-                className="text-primary-foreground/70"
+                className="inline-flex items-center justify-center text-primary-foreground/70"
               >
                 •
               </span>
