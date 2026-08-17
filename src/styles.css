@@ -193,3 +193,30 @@
 @utility animate-fade-up {
   animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+@keyframes home-ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.home-ticker-track {
+  animation: home-ticker-scroll 35s linear infinite;
+  will-change: transform;
+}
+
+@media (max-width: 640px) {
+  .home-ticker-track {
+    animation-duration: 28s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-ticker-track {
+    animation: none;
+  }
+}
