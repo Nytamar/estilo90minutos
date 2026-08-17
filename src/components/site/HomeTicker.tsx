@@ -66,6 +66,7 @@ export function HomeTicker({
               className="
                 inline-flex
                 items-center
+                justify-center
                 gap-8
                 px-8
                 text-sm
