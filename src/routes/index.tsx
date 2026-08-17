@@ -15,6 +15,8 @@ import { bannersQuery } from "@/lib/banners";
 import { BannerCarousel } from "@/components/site/BannerCarousel";
 import { homePromotionsQuery } from "@/lib/home-promotions";
 import { HomePromotions } from "@/components/site/HomePromotions";
+import { homeTickerMessagesQuery } from "@/lib/home-ticker";
+import { HomeTicker } from "@/components/site/HomeTicker";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
@@ -50,6 +52,9 @@ function Home() {
   const { data: products = [], isLoading } = useQuery(productsQuery());
   const { data: banners = [] } = useQuery(bannersQuery());
   const { data: promotions = [] } = useQuery(homePromotionsQuery());
+  const { data: tickerMessages = [] } = useQuery(
+  homeTickerMessagesQuery(),
+);
 
   const featured = products.filter((p) => p.featured).slice(0, 4);
   const recent = products.slice(0, 4);
@@ -60,6 +65,11 @@ function Home() {
   return (
     <div>
       {banners.length > 0 && <BannerCarousel banners={banners} />}
+
+      <HomeTicker
+        products={products}
+        messages={tickerMessages}
+      />
       
       <HomePromotions promotions={promotions} />
 
