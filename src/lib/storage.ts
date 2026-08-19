@@ -25,18 +25,7 @@ export async function uploadImage(file: File, folder = ""): Promise<string> {
   if (error) throw error;
 
   const publicUrl = supabase.storage.from(PRODUCT_BUCKET).getPublicUrl(path).data.publicUrl;
-  try {
-    const res = await fetch(publicUrl, { method: "HEAD" });
-    if (res.ok) return publicUrl;
-  } catch {
-    /* bucket privado — segue para URL assinada */
-  }
-
-  const { data, error: signErr } = await supabase.storage
-    .from(PRODUCT_BUCKET)
-    .createSignedUrl(path, SIGNED_URL_TTL);
-  if (signErr || !data) throw signErr ?? new Error("Não foi possível gerar o link da imagem.");
-  return data.signedUrl;
+  return publicUrl;
 }
 
 /** Upload de foto de produto. */
