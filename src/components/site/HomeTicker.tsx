@@ -48,7 +48,7 @@ export function HomeTicker({
   const tickerItems = [...items, ...items];
 
   return (
-    <div className="home-ticker w-full overflow-hidden bg-primary">
+    <div className="home-ticker w-full overflow-hidden bg-[#10325B]">
       <div
         className="
           home-ticker-track
