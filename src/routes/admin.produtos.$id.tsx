@@ -26,6 +26,7 @@ const schema = z.object({
   name: z.string().min(3, "Informe o nome"),
   price: z.number().positive("Preço inválido"),
   sale_price: z.number().nullable(),
+  cost_price: z.number().min(0, "Custo inválido"),
   description: z.string(),
 });
 
@@ -35,6 +36,7 @@ type Form = {
   description: string;
   price: string;
   sale_price: string;
+  cost_price: string;
   images: string;
   featured: boolean;
   active: boolean;
@@ -53,6 +55,7 @@ const emptyForm: Form = {
   description: "",
   price: "",
   sale_price: "",
+  cost_price: "",
   images: "",
   featured: false,
   active: true,
@@ -109,6 +112,7 @@ function ProdutoEditor() {
       description: product.description,
       price: String(product.price),
       sale_price: product.sale_price != null ? String(product.sale_price) : "",
+      cost_price: String(product.cost_price ?? 0),
       images: product.images.join("\n"),
       featured: product.featured,
       active: product.active,
@@ -164,6 +168,7 @@ function ProdutoEditor() {
       name: form.name.trim(),
       price: Number(form.price),
       sale_price: form.sale_price ? Number(form.sale_price) : null,
+      cost_price: form.cost_price ? Number(form.cost_price) : 0,
       description: form.description,
     });
     if (!parsed.success) {
@@ -255,6 +260,19 @@ function ProdutoEditor() {
             value={form.sale_price}
             onChange={(e) => set("sale_price", e.target.value)}
           />
+        </div>
+        <div>
+          <Label htmlFor="cost">Preço de custo (R$)</Label>
+          <Input
+            id="cost"
+            type="number"
+            step="0.01"
+            value={form.cost_price}
+            onChange={(e) => set("cost_price", e.target.value)}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Usado só para calcular o lucro no Financeiro — não aparece pro cliente.
+          </p>
         </div>
         <div className="sm:col-span-2">
           <Label htmlFor="desc">Descrição</Label>
