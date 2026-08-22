@@ -17,6 +17,7 @@ export type Product = {
   description: string;
   price: number;
   sale_price: number | null;
+  cost_price: number;
   images: string[];
   featured: boolean;
   sold_count: number;
