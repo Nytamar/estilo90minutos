@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { Link } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { HomePromotion } from "@/lib/home-promotions";
 
 export function HomePromotions({
@@ -32,30 +33,9 @@ export function HomePromotions({
             type="button"
             onClick={() => scroll("left")}
             aria-label="Novidades anteriores"
-            className="
-              absolute
-              left-2
-              top-1/2
-              z-20
-              hidden
-              h-11
-              w-11
-              -translate-y-1/2
-              items-center
-              justify-center
-              rounded-full
-              border
-              border-border/60
-              bg-white/95
-              text-xl
-              shadow-md
-              backdrop-blur-sm
-              transition
-              hover:scale-105
-              lg:flex
-            "
+            className="absolute left-2 top-1/2 z-20 hidden h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-background shadow-lg ring-1 ring-border transition-opacity hover:bg-accent md:flex"
           >
-            ‹
+            <ChevronLeft className="h-5 w-5" />
           </button>
         )}
 
@@ -175,30 +155,9 @@ export function HomePromotions({
             type="button"
             onClick={() => scroll("right")}
             aria-label="Próximas novidades"
-            className="
-              absolute
-              right-2
-              top-1/2
-              z-20
-              hidden
-              h-11
-              w-11
-              -translate-y-1/2
-              items-center
-              justify-center
-              rounded-full
-              border
-              border-border/60
-              bg-white/95
-              text-xl
-              shadow-md
-              backdrop-blur-sm
-              transition
-              hover:scale-105
-              lg:flex
-            "
+            className="absolute right-2 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full bg-background shadow-lg ring-1 ring-border transition-opacity hover:bg-accent md:flex"
           >
-            ›
+            <ChevronRight className="h-5 w-5" />
           </button>
         )}
       </div>
