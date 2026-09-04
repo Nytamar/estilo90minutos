@@ -27,6 +27,14 @@ export type FinancialDailyRow = {
   profit: number;
 };
 
+export type FinancialMonthlyRow = {
+  month: string;
+  total_sales: number;
+  revenue: number;
+  cost: number;
+  profit: number;
+};
+
 export type FinancialByProductRow = {
   product_id: string;
   product_name: string;
@@ -50,6 +58,8 @@ export type RegisterSaleInput = {
   customizationCost?: number;
   /** Quanto do valor total ainda falta receber (venda parcelada). 0 ou vazio = já recebeu tudo. */
   pendingAmount?: number;
+  /** Data/hora da venda. Se não informado, usa o momento do lançamento. Use pra registrar vendas de outros dias/meses. */
+  soldAt?: string;
   paymentMethod?: string;
   customerName?: string;
   notes?: string;
@@ -71,6 +81,7 @@ export async function registerSale(input: RegisterSaleInput): Promise<Sale> {
       customization_fee: input.customizationFee ?? 0,
       customization_cost: input.customizationCost ?? 0,
       pending_amount: input.pendingAmount ?? 0,
+      ...(input.soldAt ? { sold_at: input.soldAt } : {}),
       ...(input.unitCostPrice != null ? { unit_cost_price: input.unitCostPrice } : {}),
       ...(input.unitSalePrice != null ? { unit_sale_price: input.unitSalePrice } : {}),
       payment_method: input.paymentMethod ?? null,
@@ -92,6 +103,7 @@ export type UpdateSaleInput = {
   unitCostPrice?: number;
   unitSalePrice?: number;
   pendingAmount?: number;
+  soldAt?: string;
   paymentMethod?: string | null;
   customerName?: string | null;
   notes?: string | null;
@@ -107,6 +119,7 @@ export async function updateSale(id: string, input: UpdateSaleInput): Promise<Sa
   if (input.unitCostPrice !== undefined) patch.unit_cost_price = input.unitCostPrice;
   if (input.unitSalePrice !== undefined) patch.unit_sale_price = input.unitSalePrice;
   if (input.pendingAmount !== undefined) patch.pending_amount = input.pendingAmount;
+  if (input.soldAt !== undefined) patch.sold_at = input.soldAt;
   if (input.paymentMethod !== undefined) patch.payment_method = input.paymentMethod;
   if (input.customerName !== undefined) patch.customer_name = input.customerName;
   if (input.notes !== undefined) patch.notes = input.notes;
@@ -145,6 +158,16 @@ export async function fetchFinancialByProduct(): Promise<FinancialByProductRow[]
   return (data ?? []) as unknown as FinancialByProductRow[];
 }
 
+export async function fetchFinancialMonthly(): Promise<FinancialMonthlyRow[]> {
+  const { data, error } = await supabase
+    .from("v_financial_monthly")
+    .select("*")
+    .order("month", { ascending: false })
+    .limit(24);
+  if (error) throw error;
+  return (data ?? []) as unknown as FinancialMonthlyRow[];
+}
+
 export async function fetchPendingSales(): Promise<Sale[]> {
   const { data, error } = await supabase
     .from("sales")
@@ -178,6 +201,11 @@ export const financialByProductQuery = () => ({
 export const recentSalesQuery = (limit = 15) => ({
   queryKey: ["sales", limit],
   queryFn: () => fetchRecentSales(limit),
+});
+
+export const financialMonthlyQuery = () => ({
+  queryKey: ["financial-monthly"],
+  queryFn: fetchFinancialMonthly,
 });
 
 export const pendingSalesQuery = () => ({
