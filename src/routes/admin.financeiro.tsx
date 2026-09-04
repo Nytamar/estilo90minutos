@@ -20,6 +20,7 @@ import {
   deleteSale,
   financialByProductQuery,
   financialDailyQuery,
+  pendingSalesQuery,
   recentSalesQuery,
   registerSale,
   updateSale,
@@ -235,6 +236,7 @@ function FinanceiroDashboard({
   const { data: daily = [], isLoading: loadingDaily } = useQuery(financialDailyQuery());
   const { data: byProduct = [], isLoading: loadingProducts } = useQuery(financialByProductQuery());
   const { data: recentSales = [] } = useQuery(recentSalesQuery());
+  const { data: pendingSales = [] } = useQuery(pendingSalesQuery());
   const { data: products = [] } = useQuery(productsQuery(false));
 
   const totals = daily.reduce(
@@ -260,6 +262,7 @@ function FinanceiroDashboard({
       void qc.invalidateQueries({ queryKey: ["financial-daily"] });
       void qc.invalidateQueries({ queryKey: ["financial-by-product"] });
       void qc.invalidateQueries({ queryKey: ["sales"] });
+      void qc.invalidateQueries({ queryKey: ["sales-pending"] });
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : "Erro ao lançar a venda");
@@ -273,9 +276,22 @@ function FinanceiroDashboard({
       void qc.invalidateQueries({ queryKey: ["financial-daily"] });
       void qc.invalidateQueries({ queryKey: ["financial-by-product"] });
       void qc.invalidateQueries({ queryKey: ["sales"] });
+      void qc.invalidateQueries({ queryKey: ["sales-pending"] });
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : "Erro ao excluir a venda");
+    },
+  });
+
+  const { mutate: markReceived } = useMutation({
+    mutationFn: (id: string) => updateSale(id, { pendingAmount: 0 }),
+    onSuccess: () => {
+      toast.success("Marcado como recebido");
+      void qc.invalidateQueries({ queryKey: ["sales"] });
+      void qc.invalidateQueries({ queryKey: ["sales-pending"] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Erro ao atualizar");
     },
   });
 
@@ -288,6 +304,7 @@ function FinanceiroDashboard({
       void qc.invalidateQueries({ queryKey: ["financial-daily"] });
       void qc.invalidateQueries({ queryKey: ["financial-by-product"] });
       void qc.invalidateQueries({ queryKey: ["sales"] });
+      void qc.invalidateQueries({ queryKey: ["sales-pending"] });
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar a venda");
@@ -344,6 +361,37 @@ function FinanceiroDashboard({
           </p>
         </div>
       </div>
+
+      {/* A receber */}
+      {pendingSales.length > 0 && (
+        <div className="surface-card rounded-xl border border-warning/30 p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-display text-xl">A receber</h2>
+            <span className="text-warning">
+              {formatPrice(pendingSales.reduce((sum, s) => sum + Number(s.pending_amount), 0))}
+            </span>
+          </div>
+          <ul className="space-y-2 text-sm">
+            {pendingSales.map((s) => (
+              <li key={s.id} className="flex items-center justify-between gap-2 border-b border-border/50 py-2">
+                <div className="min-w-0">
+                  <p>{new Date(s.sold_at).toLocaleDateString("pt-BR")}</p>
+                  {s.customer_name && (
+                    <p className="text-xs text-muted-foreground">{s.customer_name}</p>
+                  )}
+                  {s.notes && <p className="text-xs italic text-muted-foreground">{s.notes}</p>}
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="text-warning">{formatPrice(s.pending_amount)}</span>
+                  <Button size="sm" variant="outline" onClick={() => markReceived(s.id)}>
+                    Marcar como recebido
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Lançar venda */}
       <RegisterSaleForm products={products} onSubmit={submitSale} saving={saving} />
@@ -416,6 +464,11 @@ function FinanceiroDashboard({
                   )}
                 </p>
                 {s.notes && <p className="mt-0.5 truncate text-xs italic text-muted-foreground">{s.notes}</p>}
+                {Number(s.pending_amount) > 0 && (
+                  <p className="mt-0.5 text-xs font-medium text-warning">
+                    Falta receber {formatPrice(s.pending_amount)}
+                  </p>
+                )}
               </div>
               <div className="flex shrink-0 items-center gap-3">
                 <span className="text-primary">{formatPrice(s.total_profit_amount)}</span>
@@ -467,6 +520,7 @@ function EditSaleDialog({
   const [salePrice, setSalePrice] = useState(String(sale.unit_sale_price));
   const [customizationFee, setCustomizationFee] = useState(String(sale.customization_fee));
   const [customizationCost, setCustomizationCost] = useState(String(sale.customization_cost));
+  const [pendingAmount, setPendingAmount] = useState(String(sale.pending_amount ?? 0));
   const [notes, setNotes] = useState(sale.notes ?? "");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -480,7 +534,8 @@ function EditSaleDialog({
     const price = Number(salePrice);
     const fee = Number(customizationFee || 0);
     const custoPersonalizacao = Number(customizationCost || 0);
-    if ([cost, price, fee, custoPersonalizacao].some((v) => Number.isNaN(v) || v < 0)) {
+    const pending = Number(pendingAmount || 0);
+    if ([cost, price, fee, custoPersonalizacao, pending].some((v) => Number.isNaN(v) || v < 0)) {
       toast.error("Os valores não podem ser negativos");
       return;
     }
@@ -492,6 +547,7 @@ function EditSaleDialog({
       unitSalePrice: price,
       customizationFee: fee,
       customizationCost: custoPersonalizacao,
+      pendingAmount: pending,
       notes: notes.trim() || null,
     });
   }
@@ -561,6 +617,17 @@ function EditSaleDialog({
                 step="0.01"
                 value={customizationCost}
                 onChange={(e) => setCustomizationCost(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-pending">Valor pendente (se parcelado)</Label>
+              <Input
+                id="edit-pending"
+                type="number"
+                min={0}
+                step="0.01"
+                value={pendingAmount}
+                onChange={(e) => setPendingAmount(e.target.value)}
               />
             </div>
           </div>
@@ -649,6 +716,7 @@ function RegisterSaleForm({
   const [salePrice, setSalePrice] = useState("");
   const [customizationFee, setCustomizationFee] = useState("0");
   const [customizationCost, setCustomizationCost] = useState("0");
+  const [pendingAmount, setPendingAmount] = useState("");
   const [notes, setNotes] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -676,6 +744,11 @@ function RegisterSaleForm({
       toast.error("O preço de venda não pode ser negativo");
       return;
     }
+    const pending = Number(pendingAmount || 0);
+    if (pending < 0) {
+      toast.error("O valor pendente não pode ser negativo");
+      return;
+    }
 
     await onSubmit({
       productId,
@@ -684,6 +757,7 @@ function RegisterSaleForm({
       customizationCost: custoPersonalizacao,
       unitCostPrice: costPrice ? Number(costPrice) : undefined,
       unitSalePrice: salePrice ? Number(salePrice) : undefined,
+      pendingAmount: pending,
       notes: notes.trim() || undefined,
     });
 
@@ -692,6 +766,7 @@ function RegisterSaleForm({
     setSalePrice("");
     setCustomizationFee("0");
     setCustomizationCost("0");
+    setPendingAmount("");
     setNotes("");
   }
 
@@ -773,6 +848,21 @@ function RegisterSaleForm({
             onChange={(e) => setCustomizationCost(e.target.value)}
           />
           <p className="mt-1 text-[11px] text-muted-foreground">Quanto isso custou pra você.</p>
+        </div>
+        <div>
+          <Label htmlFor="sale-pending">Valor pendente (se parcelado)</Label>
+          <Input
+            id="sale-pending"
+            type="number"
+            min={0}
+            step="0.01"
+            placeholder="0,00"
+            value={pendingAmount}
+            onChange={(e) => setPendingAmount(e.target.value)}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Deixe em branco se já recebeu tudo.
+          </p>
         </div>
       </div>
 
