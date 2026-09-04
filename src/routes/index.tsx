@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { PackageCheck, Sparkles, Clock, Flame, Truck, ShieldCheck, MessageCircle } from "lucide-react";
 import { productsQuery, taxonomiesQuery, availabilityOf, PRE_ORDER_NOTICE, type Product } from "@/lib/catalog";
+import { financialByProductQuery } from "@/lib/finance";
 import { bannersQuery } from "@/lib/banners";
 import { BannerCarousel } from "@/components/site/BannerCarousel";
 import { homePromotionsQuery } from "@/lib/home-promotions";
@@ -44,6 +45,7 @@ const categories = [
 function Home() {
   const { data: products = [], isLoading } = useQuery(productsQuery());
   const { data: taxonomies = [] } = useQuery(taxonomiesQuery());
+  const { data: salesByProduct = [] } = useQuery(financialByProductQuery());
   const leagues = taxonomies.filter((t) => t.type === "league");
   const clubsNacionais = taxonomies.filter((t) => t.type === "club" && t.region === "nacional");
   const clubsEuropeus = taxonomies.filter((t) => t.type === "club" && t.region === "europeu");
@@ -55,7 +57,11 @@ function Home() {
 );
 
   const featured = products.filter((p) => p.featured).slice(0, 4);
-  const bestSellers = [...products].sort((a, b) => b.sold_count - a.sold_count).slice(0, 4);
+  const unitsSoldByProductId = new Map(salesByProduct.map((p) => [p.product_id, p.units_sold]));
+  const bestSellers = [...products]
+    .filter((p) => (unitsSoldByProductId.get(p.id) ?? 0) > 0)
+    .sort((a, b) => (unitsSoldByProductId.get(b.id) ?? 0) - (unitsSoldByProductId.get(a.id) ?? 0))
+    .slice(0, 8);
   const readyToShip = products.filter((p) => availabilityOf(p) === "pronta_entrega").slice(0, 8);
   const madeToOrder = products.filter((p) => availabilityOf(p) === "encomenda").slice(0, 8);
 
@@ -83,7 +89,7 @@ function Home() {
           { icon: Truck, title: "Enviamos para todo Brasil", desc: "Frete calculado no atendimento" },
           { icon: ShieldCheck, title: "Qualidade garantida", desc: "Tecido premium e acabamento fiel" },
         ].map((b) => (
-          <div key={b.title} className="surface-card flex items-center gap-3 rounded-xl p-4">
+          <div key={b.title} className="surface-card flex items-center gap-3 rounded-[0.75rem] p-4">
             <b.icon className="h-6 w-6 shrink-0 text-primary" />
             <div>
               <p className="text-sm font-semibold">{b.title}</p>
