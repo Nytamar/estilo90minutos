@@ -9,6 +9,7 @@ export type Sale = {
   unit_sale_price: number;
   customization_fee: number;
   customization_cost: number;
+  pending_amount: number;
   total_sale_amount: number;
   total_cost_amount: number;
   total_profit_amount: number;
@@ -47,6 +48,8 @@ export type RegisterSaleInput = {
   unitSalePrice?: number;
   /** Quanto a personalização custou pra loja nesta venda. */
   customizationCost?: number;
+  /** Quanto do valor total ainda falta receber (venda parcelada). 0 ou vazio = já recebeu tudo. */
+  pendingAmount?: number;
   paymentMethod?: string;
   customerName?: string;
   notes?: string;
@@ -67,6 +70,7 @@ export async function registerSale(input: RegisterSaleInput): Promise<Sale> {
       quantity: input.quantity,
       customization_fee: input.customizationFee ?? 0,
       customization_cost: input.customizationCost ?? 0,
+      pending_amount: input.pendingAmount ?? 0,
       ...(input.unitCostPrice != null ? { unit_cost_price: input.unitCostPrice } : {}),
       ...(input.unitSalePrice != null ? { unit_sale_price: input.unitSalePrice } : {}),
       payment_method: input.paymentMethod ?? null,
@@ -87,6 +91,7 @@ export type UpdateSaleInput = {
   customizationCost?: number;
   unitCostPrice?: number;
   unitSalePrice?: number;
+  pendingAmount?: number;
   paymentMethod?: string | null;
   customerName?: string | null;
   notes?: string | null;
@@ -101,6 +106,7 @@ export async function updateSale(id: string, input: UpdateSaleInput): Promise<Sa
   if (input.customizationCost !== undefined) patch.customization_cost = input.customizationCost;
   if (input.unitCostPrice !== undefined) patch.unit_cost_price = input.unitCostPrice;
   if (input.unitSalePrice !== undefined) patch.unit_sale_price = input.unitSalePrice;
+  if (input.pendingAmount !== undefined) patch.pending_amount = input.pendingAmount;
   if (input.paymentMethod !== undefined) patch.payment_method = input.paymentMethod;
   if (input.customerName !== undefined) patch.customer_name = input.customerName;
   if (input.notes !== undefined) patch.notes = input.notes;
@@ -139,6 +145,16 @@ export async function fetchFinancialByProduct(): Promise<FinancialByProductRow[]
   return (data ?? []) as unknown as FinancialByProductRow[];
 }
 
+export async function fetchPendingSales(): Promise<Sale[]> {
+  const { data, error } = await supabase
+    .from("sales")
+    .select("*")
+    .gt("pending_amount", 0)
+    .order("sold_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as Sale[];
+}
+
 export async function fetchRecentSales(limit = 15): Promise<Sale[]> {
   const { data, error } = await supabase
     .from("sales")
@@ -162,4 +178,9 @@ export const financialByProductQuery = () => ({
 export const recentSalesQuery = (limit = 15) => ({
   queryKey: ["sales", limit],
   queryFn: () => fetchRecentSales(limit),
+});
+
+export const pendingSalesQuery = () => ({
+  queryKey: ["sales-pending"],
+  queryFn: fetchPendingSales,
 });
