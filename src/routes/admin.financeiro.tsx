@@ -19,6 +19,7 @@ import { formatPrice } from "@/lib/format";
 import {
   deleteSale,
   financialByProductQuery,
+  financialMonthlyQuery,
   financialDailyQuery,
   pendingSalesQuery,
   recentSalesQuery,
@@ -235,6 +236,7 @@ function FinanceiroDashboard({
   const qc = useQueryClient();
   const { data: daily = [], isLoading: loadingDaily } = useQuery(financialDailyQuery());
   const { data: byProduct = [], isLoading: loadingProducts } = useQuery(financialByProductQuery());
+  const { data: monthly = [] } = useQuery(financialMonthlyQuery());
   const { data: recentSales = [] } = useQuery(recentSalesQuery());
   const { data: pendingSales = [] } = useQuery(pendingSalesQuery());
   const { data: products = [] } = useQuery(productsQuery(false));
@@ -424,6 +426,32 @@ function FinanceiroDashboard({
         </div>
       </div>
 
+      {/* Faturamento por mês */}
+      <div className="surface-card rounded-xl p-5">
+        <h2 className="mb-3 font-display text-xl">Faturamento por mês</h2>
+        <div className="space-y-2 text-sm">
+          {monthly.map((m) => {
+            const label = new Date(m.month).toLocaleDateString("pt-BR", {
+              month: "long",
+              year: "numeric",
+            });
+            return (
+              <div
+                key={m.month}
+                className="flex flex-wrap items-center justify-between gap-2 border-b border-border/50 py-2"
+              >
+                <span className="capitalize">{label}</span>
+                <span className="text-xs text-muted-foreground">{m.total_sales} venda(s)</span>
+                <span className="text-muted-foreground">Fat. {formatPrice(m.revenue)}</span>
+                <span className="text-warning">Custo {formatPrice(m.cost)}</span>
+                <span className="font-semibold text-primary">Lucro {formatPrice(m.profit)}</span>
+              </div>
+            );
+          })}
+          {monthly.length === 0 && <p className="text-muted-foreground">Nenhuma venda lançada ainda.</p>}
+        </div>
+      </div>
+
       {/* Lucro por produto */}
       <div className="surface-card rounded-xl p-5">
         <h2 className="mb-3 font-display text-xl">Lucro por produto</h2>
@@ -501,6 +529,12 @@ function FinanceiroDashboard({
   );
 }
 
+function toDatetimeLocalValue(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 function EditSaleDialog({
   sale,
   products,
@@ -521,6 +555,7 @@ function EditSaleDialog({
   const [customizationFee, setCustomizationFee] = useState(String(sale.customization_fee));
   const [customizationCost, setCustomizationCost] = useState(String(sale.customization_cost));
   const [pendingAmount, setPendingAmount] = useState(String(sale.pending_amount ?? 0));
+  const [soldAt, setSoldAt] = useState(toDatetimeLocalValue(sale.sold_at));
   const [notes, setNotes] = useState(sale.notes ?? "");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -548,6 +583,7 @@ function EditSaleDialog({
       customizationFee: fee,
       customizationCost: custoPersonalizacao,
       pendingAmount: pending,
+      soldAt: soldAt ? new Date(soldAt).toISOString() : undefined,
       notes: notes.trim() || null,
     });
   }
@@ -628,6 +664,15 @@ function EditSaleDialog({
                 step="0.01"
                 value={pendingAmount}
                 onChange={(e) => setPendingAmount(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-date">Data da venda</Label>
+              <Input
+                id="edit-date"
+                type="datetime-local"
+                value={soldAt}
+                onChange={(e) => setSoldAt(e.target.value)}
               />
             </div>
           </div>
@@ -717,6 +762,7 @@ function RegisterSaleForm({
   const [customizationFee, setCustomizationFee] = useState("0");
   const [customizationCost, setCustomizationCost] = useState("0");
   const [pendingAmount, setPendingAmount] = useState("");
+  const [soldAt, setSoldAt] = useState("");
   const [notes, setNotes] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -758,6 +804,7 @@ function RegisterSaleForm({
       unitCostPrice: costPrice ? Number(costPrice) : undefined,
       unitSalePrice: salePrice ? Number(salePrice) : undefined,
       pendingAmount: pending,
+      soldAt: soldAt ? new Date(soldAt).toISOString() : undefined,
       notes: notes.trim() || undefined,
     });
 
@@ -767,6 +814,7 @@ function RegisterSaleForm({
     setCustomizationFee("0");
     setCustomizationCost("0");
     setPendingAmount("");
+    setSoldAt("");
     setNotes("");
   }
 
@@ -862,6 +910,18 @@ function RegisterSaleForm({
           />
           <p className="mt-1 text-[11px] text-muted-foreground">
             Deixe em branco se já recebeu tudo.
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="sale-date">Data da venda</Label>
+          <Input
+            id="sale-date"
+            type="datetime-local"
+            value={soldAt}
+            onChange={(e) => setSoldAt(e.target.value)}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Deixe em branco pra usar agora. Preencha pra lançar uma venda de outro dia/mês.
           </p>
         </div>
       </div>
