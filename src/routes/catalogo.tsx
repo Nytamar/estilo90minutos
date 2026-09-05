@@ -118,6 +118,11 @@ function Catalogo() {
     });
 
     list = [...list].sort((a, b) => {
+      // Pronta entrega sempre primeiro, não importa o critério de ordenação escolhido.
+      const availA = availabilityOf(a) === "pronta_entrega" ? 0 : 1;
+      const availB = availabilityOf(b) === "pronta_entrega" ? 0 : 1;
+      if (availA !== availB) return availA - availB;
+
       switch (sort) {
         case "menor":
           return effectivePrice(a) - effectivePrice(b);
