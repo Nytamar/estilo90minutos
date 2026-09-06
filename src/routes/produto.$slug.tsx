@@ -176,21 +176,21 @@ function updateZoomPosition(
         / <span className="text-foreground">{product.name}</span>
       </nav>
 
-      <div className="grid gap-10 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 lg:gap-10">
         <div className="flex h-fit flex-col-reverse gap-3 self-start sm:flex-row">
           {images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto sm:w-20 sm:flex-col sm:overflow-visible">
+            <div className="flex justify-center gap-3 overflow-x-auto sm:w-20 sm:flex-col sm:justify-start sm:overflow-visible">
               {images.map((img, i) => (
                 <button
                   key={img + i}
                   onClick={() => setActiveImage(i)}
                   className={cn(
-                    "h-20 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-card transition-colors sm:h-24 sm:w-20",
+                    "h-20 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-card p-1 transition-colors sm:h-24 sm:w-20",
                     activeImage === i ? "border-primary" : "border-border hover:border-primary/50",
                   )}
                   aria-label={`Imagem ${i + 1}`}
                 >
-                  <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  <img src={img} alt="" loading="lazy" className="h-full w-full object-contain" />
                 </button>
               ))}
             </div>
@@ -251,7 +251,7 @@ function updateZoomPosition(
               height={1100}
               draggable={false}
               className={cn(
-                "aspect-[4/5] w-full object-cover select-none",
+                "aspect-[4/5] w-full bg-card object-contain p-4 select-none sm:p-8",
                 "transition-transform duration-150 ease-out",
                 zoom && "scale-[2]",
               )}
@@ -266,12 +266,14 @@ function updateZoomPosition(
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
             Código {product.code}
           </p>
-          <h1 className="mt-2 text-4xl">{product.name}</h1>
+          <h1 className="mt-2 text-2xl leading-tight break-words sm:text-3xl lg:text-4xl">
+            {product.name}
+          </h1>
 
-          <div className="mt-4 flex items-baseline gap-3">
-            <span className="text-3xl font-semibold text-primary">{formatPrice(unitPrice)}</span>
+          <div className="mt-4 flex flex-wrap items-baseline gap-3">
+            <span className="text-2xl font-semibold text-primary sm:text-3xl">{formatPrice(unitPrice)}</span>
             {hasDiscount && (
-              <span className="text-lg text-muted-foreground line-through">
+              <span className="text-base text-muted-foreground line-through sm:text-lg">
                 {formatPrice(product.price + (personalize ? PERSONALIZATION_PRICE : 0))}
               </span>
             )}
