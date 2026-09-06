@@ -434,7 +434,7 @@ function updateZoomPosition(
                 type="button"
                 size="lg"
                 variant="outline"
-                className="h-14 w-full text-base font-bold"
+                className="h-auto min-h-14 w-full whitespace-normal py-3 text-sm font-bold sm:text-base"
                 onClick={handleAddToCart}
               >
                 <ShoppingBag className="mr-2 h-5 w-5" /> Adicionar ao carrinho
@@ -442,10 +442,10 @@ function updateZoomPosition(
               <Button
                 asChild
                 size="lg"
-                className="h-14 w-full bg-whatsapp text-base font-bold text-whatsapp-foreground hover:bg-whatsapp/90"
+                className="h-auto min-h-14 w-full whitespace-normal bg-whatsapp py-3 text-sm font-bold text-whatsapp-foreground hover:bg-whatsapp/90 sm:text-base"
               >
                 <a href={whatsappLink} target="_blank" rel="noreferrer">
-                  <MessageCircle className="mr-2 h-5 w-5" /> COMPRAR SÓ ESTA, DIRETO NO WHATSAPP
+                  <MessageCircle className="mr-2 h-5 w-5 shrink-0" /> COMPRAR SÓ ESTA, DIRETO NO WHATSAPP
                 </a>
               </Button>
             </div>
