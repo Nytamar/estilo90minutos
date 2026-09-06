@@ -164,8 +164,8 @@ function updateZoomPosition(
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <nav className="mb-6 text-sm text-muted-foreground">
+    <div className="mx-auto max-w-7xl py-10 sm:px-6">
+      <nav className="mb-6 px-4 text-sm text-muted-foreground sm:px-0">
         <Link to="/" className="hover:text-primary">
           Início
         </Link>{" "}
@@ -179,7 +179,7 @@ function updateZoomPosition(
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-10">
         <div className="flex h-fit flex-col-reverse gap-3 self-start sm:flex-row">
           {images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto sm:w-20 sm:flex-col sm:overflow-visible">
+            <div className="flex gap-3 overflow-x-auto px-4 sm:w-20 sm:flex-col sm:overflow-visible sm:px-0">
               {images.map((img, i) => (
                 <button
                   key={img + i}
@@ -196,7 +196,7 @@ function updateZoomPosition(
             </div>
           )}
           <div
-            className="surface-card ml-[calc(50%-50vw)] w-screen min-w-0 flex-1 overflow-hidden rounded-none sm:ml-0 sm:w-full sm:rounded-2xl"
+            className="surface-card min-w-0 flex-1 overflow-hidden rounded-none sm:rounded-2xl"
             onMouseEnter={(e) => {
               setZoom(true);
           
@@ -262,7 +262,7 @@ function updateZoomPosition(
           </div>
         </div>
 
-        <div>
+        <div className="px-4 sm:px-0">
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
             Código {product.code}
           </p>
@@ -490,7 +490,7 @@ function updateZoomPosition(
       </div>
 
       {related.length > 0 && (
-        <section className="mt-20">
+        <section className="mt-20 px-4 sm:px-0">
           <h2 className="text-3xl">Você também vai gostar</h2>
           <div className="mt-6">
             <ProductScroller>
