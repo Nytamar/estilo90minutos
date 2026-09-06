@@ -197,6 +197,7 @@ function updateZoomPosition(
           )}
           <div
             className="surface-card min-w-0 flex-1 overflow-hidden rounded-none sm:rounded-2xl"
+            style={{ touchAction: "pan-y" }}
             onMouseEnter={(e) => {
               setZoom(true);
           
