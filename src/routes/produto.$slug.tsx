@@ -179,18 +179,18 @@ function updateZoomPosition(
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-10">
         <div className="flex h-fit flex-col-reverse gap-3 self-start sm:flex-row">
           {images.length > 1 && (
-            <div className="flex justify-center gap-3 overflow-x-auto sm:w-20 sm:flex-col sm:justify-start sm:overflow-visible">
+            <div className="flex gap-3 overflow-x-auto sm:w-20 sm:flex-col sm:overflow-visible">
               {images.map((img, i) => (
                 <button
                   key={img + i}
                   onClick={() => setActiveImage(i)}
                   className={cn(
-                    "h-20 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-card p-1 transition-colors sm:h-24 sm:w-20",
+                    "h-20 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-card transition-colors sm:h-24 sm:w-20",
                     activeImage === i ? "border-primary" : "border-border hover:border-primary/50",
                   )}
                   aria-label={`Imagem ${i + 1}`}
                 >
-                  <img src={img} alt="" loading="lazy" className="h-full w-full object-contain" />
+                  <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
@@ -251,7 +251,7 @@ function updateZoomPosition(
               height={1100}
               draggable={false}
               className={cn(
-                "aspect-[4/5] w-full bg-card object-contain p-4 select-none sm:p-8",
+                "aspect-[4/5] w-full object-cover select-none",
                 "transition-transform duration-150 ease-out",
                 zoom && "scale-[2]",
               )}
