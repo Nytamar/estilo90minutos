@@ -196,7 +196,7 @@ function updateZoomPosition(
             </div>
           )}
           <div
-            className="surface-card min-w-0 flex-1 overflow-hidden rounded-2xl"
+            className="surface-card -mx-4 min-w-0 flex-1 overflow-hidden rounded-none sm:mx-0 sm:rounded-2xl"
             onMouseEnter={(e) => {
               setZoom(true);
           
