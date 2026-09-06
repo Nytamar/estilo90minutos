@@ -159,3 +159,49 @@ export function uploadBannerImage(file: File): Promise<string> {
 export function uploadHomePromotionImage(file: File): Promise<string> {
   return uploadImage(file, "novidades");
 }
+
+export type StorageFile = {
+  path: string;
+  size: number;
+  updatedAt: string | null;
+};
+
+/** Lista TODOS os arquivos do bucket, entrando em cada pasta recursivamente. */
+export async function listAllStorageFiles(prefix = ""): Promise<StorageFile[]> {
+  const { data, error } = await supabase.storage.from(PRODUCT_BUCKET).list(prefix, {
+    limit: 1000,
+    sortBy: { column: "name", order: "asc" },
+  });
+  if (error) throw error;
+
+  const files: StorageFile[] = [];
+  for (const entry of data ?? []) {
+    const fullPath = prefix ? `${prefix}/${entry.name}` : entry.name;
+    // Pastas aparecem sem "id" e sem metadata no retorno do Supabase Storage.
+    const isFolder = entry.id === null;
+    if (isFolder) {
+      files.push(...(await listAllStorageFiles(fullPath)));
+    } else {
+      files.push({
+        path: fullPath,
+        size: entry.metadata?.size ?? 0,
+        updatedAt: entry.updated_at ?? null,
+      });
+    }
+  }
+  return files;
+}
+
+/** Extrai o caminho dentro do bucket a partir de uma URL pública do Storage. */
+export function storagePathFromUrl(url: string): string | null {
+  const marker = `/storage/v1/object/public/${PRODUCT_BUCKET}/`;
+  const i = url.indexOf(marker);
+  if (i === -1) return null;
+  return decodeURIComponent(url.slice(i + marker.length));
+}
+
+export async function deleteStorageFiles(paths: string[]): Promise<void> {
+  if (paths.length === 0) return;
+  const { error } = await supabase.storage.from(PRODUCT_BUCKET).remove(paths);
+  if (error) throw error;
+}
