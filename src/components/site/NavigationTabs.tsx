@@ -45,3 +45,95 @@ export function NavigationTabs({
           background:
             "linear-gradient(120deg, #0a1a33 0%, #123a6b 45%, #1e5aa8 75%, #123a6b 100%)",
         }}
+      >
+        <svg
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.12] mix-blend-overlay"
+        >
+          <filter id="nav-tabs-grain">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
+          </filter>
+          <rect width="100%" height="100%" filter="url(#nav-tabs-grain)" />
+        </svg>
+
+        <div className="relative">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-primary">Navegue por</p>
+          <p className="mt-1 font-display text-2xl text-white">Encontre seu time</p>
+
+          <div className="mt-4 inline-flex gap-1.5 rounded-full bg-white/10 p-1">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setActive(t.key)}
+                className={cn(
+                  "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                  active === t.key
+                    ? "bg-primary text-primary-foreground"
+                    : "text-white/75 hover:text-white",
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Liga, Time e Seleção ficam dentro da própria barra */}
+          {active === "liga" && (
+            <div className="mt-6">
+              <TaxonomyBadgeRow items={leagues} paramKey="liga" />
+            </div>
+          )}
+
+          {active === "time" && (
+            <div className="mt-6 space-y-6">
+              {clubsNacionais.length > 0 && (
+                <div>
+                  <p className="mb-3 text-sm text-white/70">Times nacionais</p>
+                  <TaxonomyBadgeRow items={clubsNacionais} paramKey="time" />
+                </div>
+              )}
+              {clubsEuropeus.length > 0 && (
+                <div>
+                  <p className="mb-3 text-sm text-white/70">Times europeus</p>
+                  <TaxonomyBadgeRow items={clubsEuropeus} paramKey="time" />
+                </div>
+              )}
+            </div>
+          )}
+
+          {active === "selecao" && (
+            <div className="mt-6">
+              <TaxonomyBadgeRow items={countries} paramKey="selecao" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Categoria "salta" pra fora da barra */}
+      {isCategoria && (
+        <div className="-mt-12 grid gap-4 px-2 sm:grid-cols-2 lg:grid-cols-4">
+          {categories.map((c) => (
+            <Link key={c.slug} to="/catalogo" search={{ categoria: c.slug }} className="group block">
+              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-2xl shadow-xl">
+                <img
+                  src={c.image}
+                  alt={c.label}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              </div>
+              <div className="surface-card -mt-1 flex items-center justify-between gap-2 rounded-b-2xl px-4 py-3">
+                <p className="font-headline truncate uppercase leading-none">{c.label}</p>
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-primary-foreground">
+                  Ver <ArrowRight className="h-3 w-3" />
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
