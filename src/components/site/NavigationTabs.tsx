@@ -39,8 +39,8 @@ export function NavigationTabs({
       {/* Barra em degradê azul, com textura granulada sutil por trás */}
       <div
         className={cn(
-          "relative overflow-hidden rounded-2xl px-4 py-6 text-center sm:px-6",
-          isCategoria && "pb-16",
+          "relative overflow-hidden rounded-2xl px-4 pt-6 text-center sm:px-6",
+          isCategoria ? "pb-24 sm:pb-28" : "pb-6",
         )}
         style={{
           background:
@@ -113,7 +113,7 @@ export function NavigationTabs({
 
       {/* Categoria "salta" pra fora da barra */}
       {isCategoria && (
-        <div className="-mt-12 px-2">
+        <div className="-mt-6 px-2 sm:-mt-8">
           <ProductScroller>
             {categories.map((c) => (
               <Link
