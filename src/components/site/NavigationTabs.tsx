@@ -40,7 +40,7 @@ export function NavigationTabs({
       <div
         className={cn(
           "relative overflow-hidden rounded-2xl px-4 pt-6 text-center sm:px-6",
-          isCategoria ? "pb-24 sm:pb-28" : "pb-6",
+          isCategoria ? "pb-[320px] sm:pb-[380px] lg:pb-[354px]" : "pb-6",
         )}
         style={{
           background:
@@ -113,7 +113,7 @@ export function NavigationTabs({
 
       {/* Categoria "salta" pra fora da barra */}
       {isCategoria && (
-        <div className="-mt-6 px-2 sm:-mt-8">
+        <div className="-mt-[320px] px-2 sm:-mt-[380px] lg:-mt-[354px]">
           <ProductScroller>
             {categories.map((c) => (
               <Link
