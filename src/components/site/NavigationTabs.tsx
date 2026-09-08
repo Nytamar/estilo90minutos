@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Taxonomy } from "@/lib/catalog";
 import { TaxonomyBadgeRow } from "@/components/site/TaxonomyBadgeRow";
+import { ProductScroller } from "@/components/site/ProductScroller";
 
 type Category = { slug: string; label: string; image: string };
 
@@ -112,26 +113,33 @@ export function NavigationTabs({
 
       {/* Categoria "salta" pra fora da barra */}
       {isCategoria && (
-        <div className="-mt-12 grid gap-4 px-2 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.map((c) => (
-            <Link key={c.slug} to="/catalogo" search={{ categoria: c.slug }} className="group block">
-              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-2xl shadow-xl">
-                <img
-                  src={c.image}
-                  alt={c.label}
-                  loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              </div>
-              <div className="surface-card -mt-1 flex items-center justify-between gap-2 rounded-b-2xl px-4 py-3">
-                <p className="font-headline truncate uppercase leading-none">{c.label}</p>
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-primary-foreground">
-                  Ver <ArrowRight className="h-3 w-3" />
-                </span>
-              </div>
-            </Link>
-          ))}
+        <div className="-mt-12 px-2">
+          <ProductScroller>
+            {categories.map((c) => (
+              <Link
+                key={c.slug}
+                to="/catalogo"
+                search={{ categoria: c.slug }}
+                className="group block w-[70%] shrink-0 snap-start sm:w-[42%] lg:w-[23%]"
+              >
+                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-2xl shadow-xl">
+                  <img
+                    src={c.image}
+                    alt={c.label}
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                </div>
+                <div className="surface-card -mt-1 flex items-center justify-between gap-2 rounded-b-2xl px-4 py-3">
+                  <p className="font-headline truncate uppercase leading-none">{c.label}</p>
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-primary-foreground">
+                    Ver <ArrowRight className="h-3 w-3" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </ProductScroller>
         </div>
       )}
     </section>
