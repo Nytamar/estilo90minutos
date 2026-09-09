@@ -182,7 +182,7 @@ function ProductSection({
         </Link>
       </div>
       {loading ? (
-        <div className="flex gap-5 overflow-hidden">
+        <div className="-mx-4 flex gap-5 overflow-hidden sm:mx-0">
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
@@ -191,13 +191,15 @@ function ProductSection({
           ))}
         </div>
       ) : (
-        <ProductScroller>
-          {products.map((p) => (
-            <div key={p.id} className="w-[46%] shrink-0 snap-start sm:w-[42%] lg:w-[23%]">
-              <ProductCard product={p} />
-            </div>
-          ))}
-        </ProductScroller>
+        <div className="-mx-4 sm:mx-0">
+          <ProductScroller>
+            {products.map((p) => (
+              <div key={p.id} className="w-[46%] shrink-0 snap-start sm:w-[42%] lg:w-[23%]">
+                <ProductCard product={p} />
+              </div>
+            ))}
+          </ProductScroller>
+        </div>
       )}
     </section>
   );
