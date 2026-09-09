@@ -12,7 +12,7 @@ export function TaxonomyBadgeRow({
   if (items.length === 0) return null;
 
   return (
-    <ProductScroller>
+    <ProductScroller variant="onDark">
       {items.map((t) => (
         <Link
           key={t.id}
