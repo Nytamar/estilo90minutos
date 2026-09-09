@@ -35,12 +35,13 @@ export function NavigationTabs({
   const isCategoria = active === "categoria";
 
   return (
-    <section className="mx-auto max-w-7xl px-4 sm:px-6">
-      {/* Barra em degradê azul, com textura granulada sutil por trás */}
+    <section className="mx-auto max-w-7xl px-0 sm:px-6">
+      {/* Barra em degradê azul, com textura granulada sutil por trás — sem cantos arredondados no
+          mobile pra encostar de ponta a ponta na tela */}
       <div
         className={cn(
-          "relative overflow-hidden rounded-2xl px-4 pt-6 text-center sm:px-6",
-          isCategoria ? "pb-[320px] sm:pb-[380px] lg:pb-[354px]" : "pb-6",
+          "relative overflow-hidden rounded-none px-4 pt-6 text-center sm:rounded-2xl sm:px-6",
+          isCategoria ? "pb-[236px] sm:pb-[380px] lg:pb-[354px]" : "pb-6",
         )}
         style={{
           background:
@@ -113,14 +114,14 @@ export function NavigationTabs({
 
       {/* Categoria "salta" pra fora da barra */}
       {isCategoria && (
-        <div className="-mt-[320px] px-2 sm:-mt-[380px] lg:-mt-[354px]">
+        <div className="-mt-[236px] sm:-mt-[380px] lg:-mt-[354px]">
           <ProductScroller>
             {categories.map((c) => (
               <Link
                 key={c.slug}
                 to="/catalogo"
                 search={{ categoria: c.slug }}
-                className="group block w-[70%] shrink-0 snap-start sm:w-[42%] lg:w-[23%]"
+                className="group block w-[46%] shrink-0 snap-start sm:w-[42%] lg:w-[23%]"
               >
                 <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-2xl shadow-xl">
                   <img
