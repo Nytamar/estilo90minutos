@@ -71,23 +71,14 @@ export function ProductScroller({
         {children}
       </div>
 
-      {/* Dica bem sutil no mobile: gradiente + pontinha da seta encostando
-          na borda da tela, indicando que dá pra rolar mais pro lado. */}
+      {/* Dica bem sutil no mobile: só a setinha pulsando, sem sombra/gradiente atrás. */}
       {canScrollRight && (
-        <div
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute right-0 top-0 h-full w-10 sm:hidden",
-            onDark
-              ? "bg-gradient-to-l from-[#0a1a33]/70 to-transparent"
-              : "bg-gradient-to-l from-background/90 to-transparent",
-          )}
-        >
+        <div aria-hidden className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 sm:hidden">
           <motion.span
             animate={{ x: [0, 3, 0] }}
             transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
             className={cn(
-              "absolute right-1.5 top-1/2 -translate-y-1/2 grid h-6 w-6 place-items-center rounded-full",
+              "grid h-6 w-6 place-items-center rounded-full",
               onDark ? "bg-primary text-primary-foreground" : "bg-foreground/80 text-background",
             )}
           >
