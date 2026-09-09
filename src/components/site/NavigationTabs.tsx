@@ -9,12 +9,14 @@ import { ProductScroller } from "@/components/site/ProductScroller";
 
 type Category = { slug: string; label: string; image: string };
 
-// Altura reservada pra fileira que "salta" pra fora da faixa (categoria).
-// Fica fixa e igual pra qualquer aba ativa, pra faixa nunca mudar de
-// altura ao trocar de aba — só a fileira de categoria usa essa margem
-// negativa pra realmente aparecer saltando por fora.
-const JUMP_OUT_CLASS = "pb-[236px] sm:pb-[380px] lg:pb-[354px]";
-const JUMP_OUT_NEGATIVE_CLASS = "-mt-[236px] sm:-mt-[380px] lg:-mt-[354px]";
+// Altura fixa da área abaixo das abas — SEMPRE a mesma, pras 4 abas, tanto
+// pra caber a fileira de Categoria "saltando" pra fora quanto pros escudos
+// de Liga/Time/Seleção, que ficam centralizados dentro dela.
+// Antes isso era feito com padding-bottom, mas o conteúdo dos escudos
+// (que fica DENTRO da faixa) somava altura em cima do padding e a faixa
+// ainda mudava de tamanho — por isso agora é uma altura fixa de verdade.
+const RESERVED_HEIGHT_CLASS = "h-[236px] sm:h-[380px] lg:h-[354px]";
+const RESERVED_NEGATIVE_CLASS = "-mt-[236px] sm:-mt-[380px] lg:-mt-[354px]";
 
 const tabContentVariants = {
   initial: { opacity: 0, y: 8 },
@@ -54,15 +56,10 @@ export function NavigationTabs({
 
   return (
     <section className="mx-auto max-w-7xl px-0 sm:px-6">
-      {/* Barra em degradê azul, com textura granulada sutil por trás — sem cantos arredondados no
-          mobile pra encostar de ponta a ponta na tela. A altura (pt + pb) é sempre a mesma,
-          não importa qual aba está ativa — só a categoria usa a margem negativa abaixo pra
-          saltar pra fora visualmente. */}
+      {/* Barra em degradê azul — a altura (topo + área reservada fixa abaixo) é
+          sempre a mesma, não importa qual aba está ativa. */}
       <div
-        className={cn(
-          "relative overflow-hidden rounded-none px-4 pt-6 text-center sm:rounded-2xl sm:px-6",
-          JUMP_OUT_CLASS,
-        )}
+        className="relative overflow-hidden rounded-none px-4 pt-6 text-center sm:rounded-2xl sm:px-6"
         style={{
           background:
             "linear-gradient(120deg, #0a1a33 0%, #123a6b 45%, #1e5aa8 75%, #123a6b 100%)",
@@ -99,9 +96,12 @@ export function NavigationTabs({
               </button>
             ))}
           </div>
+        </div>
 
-          {/* Liga, Time e Seleção ficam dentro da própria barra, com uma
-              transição suave (framer motion) ao trocar de aba. */}
+        {/* Área reservada: altura fixa, sempre igual. Pra Categoria fica vazia
+            (as cartas dela "saltam" por fora, num bloco separado logo abaixo).
+            Pras outras abas, o conteúdo fica centralizado aqui dentro. */}
+        <div className={cn("relative mx-auto flex max-w-full flex-col items-center justify-center", RESERVED_HEIGHT_CLASS)}>
           <AnimatePresence mode="wait">
             {active === "liga" && (
               <motion.div
@@ -111,7 +111,7 @@ export function NavigationTabs({
                 animate="animate"
                 exit="exit"
                 transition={{ duration: 0.22, ease: "easeOut" }}
-                className="mt-6"
+                className="w-full"
               >
                 <TaxonomyBadgeRow items={leagues} paramKey="liga" />
               </motion.div>
@@ -125,7 +125,7 @@ export function NavigationTabs({
                 animate="animate"
                 exit="exit"
                 transition={{ duration: 0.22, ease: "easeOut" }}
-                className="mt-6 space-y-4"
+                className="w-full space-y-4"
               >
                 {hasBothRegions && (
                   <div className="inline-flex gap-6 text-sm font-semibold uppercase tracking-wide">
@@ -200,7 +200,7 @@ export function NavigationTabs({
                 animate="animate"
                 exit="exit"
                 transition={{ duration: 0.22, ease: "easeOut" }}
-                className="mt-6"
+                className="w-full"
               >
                 <TaxonomyBadgeRow items={countries} paramKey="selecao" />
               </motion.div>
@@ -209,7 +209,9 @@ export function NavigationTabs({
         </div>
       </div>
 
-      {/* Categoria "salta" pra fora da barra */}
+      {/* Categoria "salta" pra fora da barra — usa a mesma altura reservada
+          acima como margem negativa, então sobe exatamente até onde a área
+          reservada começa, nunca mais nem menos. */}
       <AnimatePresence>
         {isCategoria && (
           <motion.div
@@ -218,7 +220,7 @@ export function NavigationTabs({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
-            className={JUMP_OUT_NEGATIVE_CLASS}
+            className={RESERVED_NEGATIVE_CLASS}
           >
             <ProductScroller variant="onDark" edgeGutter>
               {categories.map((c) => (
