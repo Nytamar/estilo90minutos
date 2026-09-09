@@ -186,7 +186,7 @@ function ProductSection({
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="aspect-[3/4] w-[46%] shrink-0 animate-pulse rounded-2xl bg-card sm:w-[42%] lg:w-[23%]"
+              className="aspect-[3/4] w-[44%] shrink-0 animate-pulse rounded-2xl bg-card sm:w-[42%] lg:w-[23%]"
             />
           ))}
         </div>
@@ -194,7 +194,7 @@ function ProductSection({
         <div className="-mx-4 sm:mx-0">
           <ProductScroller>
             {products.map((p) => (
-              <div key={p.id} className="w-[46%] shrink-0 snap-start sm:w-[42%] lg:w-[23%]">
+              <div key={p.id} className="w-[44%] shrink-0 snap-start sm:w-[42%] lg:w-[23%]">
                 <ProductCard product={p} />
               </div>
             ))}
