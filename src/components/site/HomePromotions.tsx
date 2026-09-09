@@ -24,7 +24,7 @@ export function HomePromotions({
   };
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 pb-5 pt-0 sm:px-6 sm:pb-7">
+    <section className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
       <div className="relative">
 
         {/* SETA ESQUERDA - DESKTOP */}
