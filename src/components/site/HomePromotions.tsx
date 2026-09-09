@@ -1,6 +1,7 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 import type { HomePromotion } from "@/lib/home-promotions";
 
 export function HomePromotions({
@@ -9,6 +10,22 @@ export function HomePromotions({
   promotions: HomePromotion[];
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  function updateCanScrollRight() {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }
+
+  useEffect(() => {
+    updateCanScrollRight();
+    const el = scrollRef.current;
+    if (!el) return;
+    const onResize = () => updateCanScrollRight();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [promotions]);
 
   if (promotions.length === 0) return null;
 
@@ -25,7 +42,10 @@ export function HomePromotions({
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
-      <div className="relative">
+      {/* -mx-4 cancela o padding do <section> no mobile, então esta fileira
+          encosta de ponta a ponta na tela; no desktop (sm:mx-0) o respiro
+          do container volta normalmente. */}
+      <div className="relative -mx-4 sm:mx-0">
 
         {/* SETA ESQUERDA - DESKTOP */}
         {promotions.length > 3 && (
@@ -39,9 +59,12 @@ export function HomePromotions({
           </button>
         )}
 
-        {/* CARDS */}
+        {/* CARDS — sem padding próprio: no mobile os cards encostam de
+            ponta a ponta na tela, só a pontinha do próximo aparece na
+            borda; no desktop ficam contidos pelo padding do <section>. */}
         <div
           ref={scrollRef}
+          onScroll={updateCanScrollRight}
           className="
             flex
             gap-4
@@ -159,6 +182,22 @@ export function HomePromotions({
           >
             <ChevronRight className="h-5 w-5" />
           </button>
+        )}
+
+        {/* Dica bem sutil no mobile de que dá pra rolar mais pro lado */}
+        {canScrollRight && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute right-0 top-0 h-full w-10 sm:hidden"
+          >
+            <motion.span
+              animate={{ x: [0, 3, 0] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute right-1.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full bg-foreground/80 text-background"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </motion.span>
+          </div>
         )}
       </div>
     </section>
