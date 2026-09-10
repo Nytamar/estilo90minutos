@@ -58,7 +58,7 @@ export function ProductScroller({
   const onDark = variant === "onDark";
 
   return (
-    <div className="group/scroller relative">
+    <div className="group/scroller relative w-full">
       <div
         ref={scrollerRef}
         onScroll={updateArrows}
