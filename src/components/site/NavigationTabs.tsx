@@ -164,31 +164,13 @@ export function NavigationTabs({
                   </div>
                 )}
 
-                <AnimatePresence mode="wait">
+                <div key={teamRegion}>
                   {teamRegion === "nacional" && clubsNacionais.length > 0 ? (
-                    <motion.div
-                      key="time-nacional"
-                      variants={tabContentVariants}
-                      initial="initial"
-                      animate="animate"
-                      exit="exit"
-                      transition={{ duration: 0.18, ease: "easeOut" }}
-                    >
-                      <TaxonomyBadgeRow items={clubsNacionais} paramKey="time" />
-                    </motion.div>
+                    <TaxonomyBadgeRow items={clubsNacionais} paramKey="time" />
                   ) : (
-                    <motion.div
-                      key="time-europeu"
-                      variants={tabContentVariants}
-                      initial="initial"
-                      animate="animate"
-                      exit="exit"
-                      transition={{ duration: 0.18, ease: "easeOut" }}
-                    >
-                      <TaxonomyBadgeRow items={clubsEuropeus} paramKey="time" />
-                    </motion.div>
+                    <TaxonomyBadgeRow items={clubsEuropeus} paramKey="time" />
                   )}
-                </AnimatePresence>
+                </div>
               </motion.div>
             )}
 
