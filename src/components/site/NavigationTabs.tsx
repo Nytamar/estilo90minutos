@@ -184,7 +184,15 @@ export function NavigationTabs({
               limpa o estado. Agora é um único filho, identificado pela aba
               ativa, sem "wait": a entrada e a eventual saída acontecem em
               paralelo, então não existe uma saída pendente pra travar.  */}
-          <AnimatePresence initial={false}>
+          {/* mode="popLayout": o elemento que está saindo é tirado do fluxo
+              (position: absolute) assim que a saída começa, em vez de ficar
+              ocupando espaço ao lado do que está entrando — sem isso, os
+              dois ficavam empilhados por uma fração de segundo e dava um
+              "pulo" de layout, o que fazia a troca parecer seca mesmo com
+              fade. Com popLayout o crossfade fica no lugar certo e mais
+              lento/suave, e continua sem "esperar" a saída terminar (por
+              isso não reintroduz o bug dos escudos sumindo). */}
+          <AnimatePresence initial={false} mode="popLayout">
             {active !== "categoria" && (
               <motion.div
                 key={active}
@@ -192,7 +200,7 @@ export function NavigationTabs({
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                transition={{ duration: 0.22, ease: "easeOut" }}
+                transition={{ duration: 0.35, ease: "easeInOut" }}
                 className="w-full space-y-4"
               >
                 {active === "liga" && <TaxonomyBadgeRow items={leagues} paramKey="liga" />}
