@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -23,6 +23,78 @@ const tabContentVariants = {
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -8 },
 };
+
+// Indicador (traço) de "Nacionais" / "Europeus": em vez do truque de
+// layoutId compartilhado entre dois elementos que são desmontados e
+// remontados a cada clique (o que deixava a transição com uma "mola"
+// estranha e, combinado com a troca de aba, podia corromper o cálculo
+// de layout do framer-motion), medimos a posição real dos botões e
+// deslizamos um único traço sempre montado — simples, previsível e sem
+// depender de unmount/remount pra animar.
+function TeamRegionToggle({
+  teamRegion,
+  setTeamRegion,
+}: {
+  teamRegion: "nacional" | "europeu";
+  setTeamRegion: (r: "nacional" | "europeu") => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const nacionalRef = useRef<HTMLButtonElement>(null);
+  const europeuRef = useRef<HTMLButtonElement>(null);
+  const [indicator, setIndicator] = useState<{ x: number; width: number } | null>(null);
+
+  useEffect(() => {
+    function measure() {
+      const container = containerRef.current;
+      const btn = teamRegion === "nacional" ? nacionalRef.current : europeuRef.current;
+      if (!container || !btn) return;
+      const containerRect = container.getBoundingClientRect();
+      const btnRect = btn.getBoundingClientRect();
+      setIndicator({ x: btnRect.left - containerRect.left, width: btnRect.width });
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [teamRegion]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative inline-flex gap-6 text-sm font-semibold uppercase tracking-wide"
+    >
+      <button
+        ref={nacionalRef}
+        type="button"
+        onClick={() => setTeamRegion("nacional")}
+        className={cn(
+          "relative pb-1 transition-colors",
+          teamRegion === "nacional" ? "text-white" : "text-white/50 hover:text-white/80",
+        )}
+      >
+        Nacionais
+      </button>
+      <button
+        ref={europeuRef}
+        type="button"
+        onClick={() => setTeamRegion("europeu")}
+        className={cn(
+          "relative pb-1 transition-colors",
+          teamRegion === "europeu" ? "text-white" : "text-white/50 hover:text-white/80",
+        )}
+      >
+        Europeus
+      </button>
+      {indicator && (
+        <motion.span
+          className="absolute -bottom-0.5 h-0.5 rounded-full bg-primary"
+          initial={false}
+          animate={{ x: indicator.x, width: indicator.width }}
+          transition={{ duration: 0.25, ease: "easeInOut" }}
+        />
+      )}
+    </div>
+  );
+}
 
 export function NavigationTabs({
   categories,
@@ -102,24 +174,20 @@ export function NavigationTabs({
             (as cartas dela "saltam" por fora, num bloco separado logo abaixo).
             Pras outras abas, o conteúdo fica centralizado aqui dentro. */}
         <div className={cn("relative mx-auto flex max-w-full flex-col items-center justify-center", RESERVED_HEIGHT_CLASS)}>
-          <AnimatePresence mode="wait">
-            {active === "liga" && (
+          {/* Antes cada aba (liga/time/selecao) era um filho separado dentro de
+              um AnimatePresence com mode="wait": a nova aba só entrava depois
+              da anterior terminar de sair. Se o usuário trocasse de aba de
+              novo enquanto essa saída ainda estava em andamento (bem comum
+              ao navegar rápido), o framer-motion podia perder a referência
+              do elemento que estava saindo e travar o próximo com
+              opacidade 0 pra sempre — os escudos "somem" e só um reload
+              limpa o estado. Agora é um único filho, identificado pela aba
+              ativa, sem "wait": a entrada e a eventual saída acontecem em
+              paralelo, então não existe uma saída pendente pra travar.  */}
+          <AnimatePresence initial={false}>
+            {active !== "categoria" && (
               <motion.div
-                key="liga"
-                variants={tabContentVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                className="w-full"
-              >
-                <TaxonomyBadgeRow items={leagues} paramKey="liga" />
-              </motion.div>
-            )}
-
-            {active === "time" && (
-              <motion.div
-                key="time"
+                key={active}
                 variants={tabContentVariants}
                 initial="initial"
                 animate="animate"
@@ -127,64 +195,22 @@ export function NavigationTabs({
                 transition={{ duration: 0.22, ease: "easeOut" }}
                 className="w-full space-y-4"
               >
-                {hasBothRegions && (
-                  <div className="inline-flex gap-6 text-sm font-semibold uppercase tracking-wide">
-                    <button
-                      type="button"
-                      onClick={() => setTeamRegion("nacional")}
-                      className={cn(
-                        "relative pb-1 transition-colors",
-                        teamRegion === "nacional" ? "text-white" : "text-white/50 hover:text-white/80",
-                      )}
-                    >
-                      Nacionais
-                      {teamRegion === "nacional" && (
-                        <motion.span
-                          layoutId="team-region-underline"
-                          className="absolute inset-x-0 -bottom-0.5 h-0.5 rounded-full bg-primary"
-                        />
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTeamRegion("europeu")}
-                      className={cn(
-                        "relative pb-1 transition-colors",
-                        teamRegion === "europeu" ? "text-white" : "text-white/50 hover:text-white/80",
-                      )}
-                    >
-                      Europeus
-                      {teamRegion === "europeu" && (
-                        <motion.span
-                          layoutId="team-region-underline"
-                          className="absolute inset-x-0 -bottom-0.5 h-0.5 rounded-full bg-primary"
-                        />
-                      )}
-                    </button>
-                  </div>
+                {active === "liga" && <TaxonomyBadgeRow items={leagues} paramKey="liga" />}
+
+                {active === "time" && (
+                  <>
+                    {hasBothRegions && (
+                      <TeamRegionToggle teamRegion={teamRegion} setTeamRegion={setTeamRegion} />
+                    )}
+                    {teamRegion === "nacional" && clubsNacionais.length > 0 ? (
+                      <TaxonomyBadgeRow items={clubsNacionais} paramKey="time" />
+                    ) : (
+                      <TaxonomyBadgeRow items={clubsEuropeus} paramKey="time" />
+                    )}
+                  </>
                 )}
 
-                <div key={teamRegion}>
-                  {teamRegion === "nacional" && clubsNacionais.length > 0 ? (
-                    <TaxonomyBadgeRow items={clubsNacionais} paramKey="time" />
-                  ) : (
-                    <TaxonomyBadgeRow items={clubsEuropeus} paramKey="time" />
-                  )}
-                </div>
-              </motion.div>
-            )}
-
-            {active === "selecao" && (
-              <motion.div
-                key="selecao"
-                variants={tabContentVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                className="w-full"
-              >
-                <TaxonomyBadgeRow items={countries} paramKey="selecao" />
+                {active === "selecao" && <TaxonomyBadgeRow items={countries} paramKey="selecao" />}
               </motion.div>
             )}
           </AnimatePresence>
