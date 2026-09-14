@@ -75,15 +75,8 @@ function Home() {
 
       {banners.length > 0 && <BannerCarousel banners={banners} />}
 
-      <HomeTicker
-        products={products}
-        messages={tickerMessages}
-      />
-      
-      <HomePromotions promotions={promotions} />
-
-      {/* Benefícios: ícone + texto soltos, sem caixinha, igual à referência */}
-      <section className="relative z-10 mx-auto mt-6 flex max-w-7xl flex-col gap-4 px-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6 sm:px-6">
+      {/* Benefícios: ícone + texto soltos, logo abaixo do hero, igual à referência */}
+      <section className="relative z-10 mx-auto mt-5 flex max-w-7xl flex-col gap-3 px-4 sm:mt-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6 sm:px-6">
         {[
           { icon: MessageCircle, title: "Pedido pelo WhatsApp", desc: "Atendimento humano e rápido" },
           { icon: Truck, title: "Enviamos para todo Brasil", desc: "Frete calculado no atendimento" },
@@ -99,6 +92,13 @@ function Home() {
         ))}
       </section>
       <div className="mx-auto mt-5 h-px max-w-7xl bg-border/60" />
+
+      <HomeTicker
+        products={products}
+        messages={tickerMessages}
+      />
+
+      <HomePromotions promotions={promotions} />
 
       <ProductSection
         title="Mais vendidos"
@@ -173,21 +173,24 @@ function ProductSection({
 }) {
   if (!loading && products.length === 0) return null;
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-3xl">
+    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+      <div className="mb-4 flex items-center justify-between border-b border-border/70 pb-3 sm:mb-6">
+        <h2 className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-foreground sm:text-sm">
           {icon} {title}
         </h2>
-        <Link to="/catalogo" className="text-sm text-primary hover:underline">
-          Ver tudo
+        <Link
+          to="/catalogo"
+          className="text-xs font-semibold uppercase tracking-wide text-primary hover:underline sm:text-sm"
+        >
+          Ver todos
         </Link>
       </div>
       {loading ? (
-        <div className="-mx-4 flex gap-5 overflow-hidden sm:mx-0">
+        <div className="-mx-4 flex gap-4 overflow-hidden sm:mx-0 sm:gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="aspect-[3/4] w-[44%] shrink-0 animate-pulse rounded-2xl bg-card sm:w-[42%] lg:w-[23%]"
+              className="aspect-[4/5] w-[46%] shrink-0 animate-pulse rounded-2xl bg-card sm:w-[31%] lg:w-[23%]"
             />
           ))}
         </div>
@@ -195,7 +198,7 @@ function ProductSection({
         <div className="-mx-4 sm:mx-0">
           <ProductScroller>
             {products.map((p) => (
-              <div key={p.id} className="w-[44%] shrink-0 snap-start sm:w-[42%] lg:w-[23%]">
+              <div key={p.id} className="w-[46%] shrink-0 snap-start sm:w-[31%] lg:w-[23%]">
                 <ProductCard product={p} />
               </div>
             ))}
