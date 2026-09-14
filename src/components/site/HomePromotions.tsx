@@ -41,7 +41,7 @@ export function HomePromotions({
   };
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
+    <section className="relative isolate z-0 mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
       {/* -mx-4 cancela o padding do <section> no mobile, então esta fileira
           encosta de ponta a ponta na tela; no desktop (sm:mx-0) o respiro
           do container volta normalmente. */}
