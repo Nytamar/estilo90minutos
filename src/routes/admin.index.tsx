@@ -1,206 +1,171 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { PackageCheck, Sparkles, Clock, Flame, Truck, ShieldCheck, MessageCircle } from "lucide-react";
-import { productsQuery, taxonomiesQuery, availabilityOf, PRE_ORDER_NOTICE, type Product } from "@/lib/catalog";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { AlertTriangle, PackageX, Shirt, TrendingUp } from "lucide-react";
+import { productsQuery, totalStock } from "@/lib/catalog";
+import { formatPrice } from "@/lib/format";
 import { financialByProductQuery } from "@/lib/finance";
-import { bannersQuery } from "@/lib/banners";
-import { BannerCarousel } from "@/components/site/BannerCarousel";
-import { homePromotionsQuery } from "@/lib/home-promotions";
-import { HomePromotions } from "@/components/site/HomePromotions";
-import { homeTickerMessagesQuery } from "@/lib/home-ticker";
-import { HomeTicker } from "@/components/site/HomeTicker";
-import { ProductCard } from "@/components/site/ProductCard";
-import { ProductScroller } from "@/components/site/ProductScroller";
-import { NavigationTabs } from "@/components/site/NavigationTabs";
-import { Button } from "@/components/ui/button";
-import { siteConfig } from "@/config/site";
 
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: `${siteConfig.name} — Camisas de Futebol Nacionais, Europeias e Retrô` },
-      {
-        name: "description",
-        content:
-          "Camisas de futebol de clubes nacionais, europeus, seleções e retrô. Escolha o modelo e feche o pedido direto pelo WhatsApp.",
-      },
-      { property: "og:title", content: `${siteConfig.name} — Camisas de Futebol` },
-      {
-        property: "og:description",
-        content: "Catálogo premium de camisas de futebol com pedido direto pelo WhatsApp.",
-      },
-    ],
-  }),
-  component: Home,
+export const Route = createFileRoute("/admin/")({
+  component: Dashboard,
 });
 
-const categories = [
-  { slug: "nacionais", label: "Nacionais", desc: "Times do Brasil", image: "/images/Nacionais.png" },
-  { slug: "europeus", label: "Europeus", desc: "Clubes da Europa", image: "/images/Europeus.jpg" },
-  { slug: "selecoes", label: "Seleções", desc: "Camisas de países", image: "/images/Selecoes.png" },
-  { slug: "retro", label: "Retrô", desc: "Clássicos eternos", image: "/images/Retro.png" },
-  { slug: "nba", label: "NBA", desc: "Regatas e jerseys", image: "/images/Nba.png" },
-];
+function Dashboard() {
+  const { data: products = [], isLoading } = useQuery(productsQuery(false));
+  // Reaproveita os totais já calculados no financeiro (só a quantidade
+  // vendida por produto — sem mostrar valores financeiros aqui no
+  // dashboard geral, que fica fora do PIN do financeiro).
+  const { data: byProduct = [] } = useQuery(financialByProductQuery());
 
-function Home() {
-  const { data: products = [], isLoading } = useQuery(productsQuery());
-  const { data: taxonomies = [] } = useQuery(taxonomiesQuery());
-  const { data: salesByProduct = [] } = useQuery(financialByProductQuery());
-  const leagues = taxonomies.filter((t) => t.type === "league");
-  const clubsNacionais = taxonomies.filter((t) => t.type === "club" && t.region === "nacional");
-  const clubsEuropeus = taxonomies.filter((t) => t.type === "club" && t.region === "europeu");
-  const countries = taxonomies.filter((t) => t.type === "country");
-  const { data: banners = [] } = useQuery(bannersQuery());
-  const { data: promotions = [] } = useQuery(homePromotionsQuery());
-  const { data: tickerMessages = [] } = useQuery(
-  homeTickerMessagesQuery(),
-);
+  const outOfStock = products.filter((p) => totalStock(p) === 0);
+  const lowStock = products.filter((p) => {
+    const t = totalStock(p);
+    return t > 0 && t <= 3;
+  });
+  const soldByProduct = [...byProduct].sort((a, b) => b.units_sold - a.units_sold);
+  const sold = soldByProduct.reduce((s, p) => s + Number(p.units_sold ?? 0), 0);
+  const recent = [...products]
+    .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+    .slice(0, 5);
 
-  const featured = products.filter((p) => p.featured).slice(0, 4);
-  const unitsSoldByProductId = new Map(salesByProduct.map((p) => [p.product_id, p.units_sold]));
-  const bestSellers = [...products]
-    .filter((p) => (unitsSoldByProductId.get(p.id) ?? 0) > 0)
-    .sort((a, b) => (unitsSoldByProductId.get(b.id) ?? 0) - (unitsSoldByProductId.get(a.id) ?? 0))
-    .slice(0, 8);
-  const readyToShip = products.filter((p) => availabilityOf(p) === "pronta_entrega").slice(0, 8);
-  const madeToOrder = products.filter((p) => availabilityOf(p) === "encomenda").slice(0, 8);
+  const cards = [
+    { label: "Produtos cadastrados", value: products.length, icon: Shirt },
+    { label: "Produtos vendidos", value: sold, icon: TrendingUp, anchor: "#vendidos" },
+    { label: "Sem estoque", value: outOfStock.length, icon: PackageX, anchor: "#sem-estoque" },
+    { label: "Estoque baixo", value: lowStock.length, icon: AlertTriangle, anchor: "#estoque-baixo" },
+  ];
+
+  if (isLoading) return <p className="text-muted-foreground">Carregando dados...</p>;
 
   return (
-    <div>
-      {/* Título principal da página, só pra leitor de tela e SEO — visualmente
-          o carrossel de banners abaixo já cumpre esse papel. */}
-      <h1 className="sr-only">
-        {siteConfig.name} — Camisas de futebol nacionais, europeias, seleções e retrô
-      </h1>
+    <div className="space-y-8">
+      <h1 className="text-3xl">Dashboard</h1>
 
-      {banners.length > 0 && <BannerCarousel banners={banners} />}
-
-      <HomeTicker
-        products={products}
-        messages={tickerMessages}
-      />
-      
-      <HomePromotions promotions={promotions} />
-
-      {/* Benefícios */}
-      <section className="relative z-10 mx-auto mt-6 grid max-w-7xl gap-4 px-4 sm:grid-cols-3 sm:px-6">
-        {[
-          { icon: MessageCircle, title: "Pedido pelo WhatsApp", desc: "Atendimento humano e rápido" },
-          { icon: Truck, title: "Enviamos para todo Brasil", desc: "Frete calculado no atendimento" },
-          { icon: ShieldCheck, title: "Qualidade garantida", desc: "Tecido premium e acabamento fiel" },
-        ].map((b) => (
-          <div key={b.title} className="surface-card flex items-center gap-3 rounded-2xl p-4">
-            <b.icon className="h-6 w-6 shrink-0 text-primary" />
-            <div>
-              <p className="text-sm font-semibold">{b.title}</p>
-              <p className="text-xs text-muted-foreground">{b.desc}</p>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      <ProductSection
-        title="Mais vendidos"
-        icon={<Flame className="h-5 w-5 text-primary" />}
-        products={bestSellers}
-        loading={isLoading}
-      />
-
-      <NavigationTabs
-        categories={categories}
-        leagues={leagues}
-        clubsNacionais={clubsNacionais}
-        clubsEuropeus={clubsEuropeus}
-        countries={countries}
-      />
-
-      <ProductSection
-        title="Pronta entrega"
-        icon={<PackageCheck className="h-5 w-5 text-primary" />}
-        products={readyToShip}
-        loading={isLoading}
-      />
-      {madeToOrder.length > 0 && (
-        <div className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
-          <div className="surface-card flex items-start gap-3 rounded-xl border border-warning/40 p-4">
-            <Clock className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
-            <p className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">Atenção:</span> {PRE_ORDER_NOTICE}
-            </p>
-          </div>
-        </div>
-      )}
-
-      <ProductSection
-        title="Em destaque"
-        icon={<Sparkles className="h-5 w-5 text-primary" />}
-        products={featured}
-        loading={isLoading}
-      />
-
-      <section className="mx-auto max-w-7xl px-4 pb-4 sm:px-6">
-        <div className="surface-card flex flex-col items-center gap-4 rounded-3xl p-10 text-center">
-          <h2 className="text-3xl">Não achou o seu time?</h2>
-          <p className="max-w-lg text-muted-foreground">
-            Trabalhamos com encomendas. Chame no WhatsApp e conseguimos o manto para você.
-          </p>
-          <Button asChild size="lg">
-            <a
-              href={`https://wa.me/${siteConfig.whatsappNumber}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Falar no WhatsApp
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map((c) =>
+          c.anchor ? (
+            <a key={c.label} href={c.anchor} className="surface-card hover-lift block rounded-xl p-5">
+              <c.icon className="h-5 w-5 text-primary" />
+              <p className="mt-3 font-display text-3xl">{c.value}</p>
+              <p className="text-xs text-muted-foreground">{c.label}</p>
             </a>
-          </Button>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function ProductSection({
-  title,
-  icon,
-  products,
-  loading,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  products: Product[];
-  loading: boolean;
-}) {
-  if (!loading && products.length === 0) return null;
-  return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-3xl">
-          {icon} {title}
-        </h2>
-        <Link to="/catalogo" className="text-sm text-primary hover:underline">
-          Ver tudo
-        </Link>
+          ) : (
+            <div key={c.label} className="surface-card rounded-xl p-5">
+              <c.icon className="h-5 w-5 text-primary" />
+              <p className="mt-3 font-display text-3xl">{c.value}</p>
+              <p className="text-xs text-muted-foreground">{c.label}</p>
+            </div>
+          ),
+        )}
       </div>
-      {loading ? (
-        <div className="-mx-4 flex gap-5 overflow-hidden sm:mx-0">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="aspect-[3/4] w-[44%] shrink-0 animate-pulse rounded-2xl bg-card sm:w-[42%] lg:w-[23%]"
-            />
-          ))}
+
+      <div className="surface-card rounded-xl p-5">
+        <h2 className="mb-4 font-display text-xl">Mais vendidos</h2>
+        <div className="h-72 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={soldByProduct.slice(0, 8).map((p) => ({ name: p.product_name, vendas: p.units_sold }))}>
+              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.33 0.045 259)" />
+              <XAxis dataKey="name" stroke="oklch(0.72 0.022 255)" fontSize={11} interval={0} angle={-20} textAnchor="end" height={60} />
+              <YAxis stroke="oklch(0.72 0.022 255)" fontSize={12} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{
+                  background: "oklch(0.22 0.047 259)",
+                  border: "1px solid oklch(0.33 0.045 259)",
+                  borderRadius: 8,
+                }}
+              />
+              <Bar dataKey="vendas" fill="oklch(0.79 0.132 85)" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-      ) : (
-        <div className="-mx-4 sm:mx-0">
-          <ProductScroller>
-            {products.map((p) => (
-              <div key={p.id} className="w-[44%] shrink-0 snap-start sm:w-[42%] lg:w-[23%]">
-                <ProductCard product={p} />
-              </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="surface-card rounded-xl p-5">
+          <h2 className="mb-3 font-display text-xl">Últimos cadastrados</h2>
+          <ul className="space-y-2 text-sm">
+            {recent.map((p) => (
+              <li key={p.id} className="flex justify-between gap-2">
+                <Link
+                  to="/admin/produtos/$id"
+                  params={{ id: p.id }}
+                  className="truncate hover:text-primary"
+                >
+                  {p.name}
+                </Link>
+                <span className="shrink-0 text-muted-foreground">{formatPrice(p.price)}</span>
+              </li>
             ))}
-          </ProductScroller>
+          </ul>
         </div>
-      )}
-    </section>
+
+        <div id="vendidos" className="surface-card scroll-mt-24 rounded-xl p-5">
+          <h2 className="mb-3 font-display text-xl">Produtos vendidos</h2>
+          <ul className="space-y-2 text-sm">
+            {soldByProduct.map((p) => (
+              <li key={p.product_id} className="flex justify-between gap-2">
+                <span className="truncate">{p.product_name}</span>
+                <span className="shrink-0 text-muted-foreground">{p.units_sold} un.</span>
+              </li>
+            ))}
+            {soldByProduct.length === 0 && (
+              <li className="text-muted-foreground">Nenhuma venda lançada ainda.</li>
+            )}
+          </ul>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div id="sem-estoque" className="surface-card scroll-mt-24 rounded-xl p-5">
+          <h2 className="mb-3 font-display text-xl">Sem estoque</h2>
+          <ul className="space-y-2 text-sm">
+            {outOfStock.map((p) => (
+              <li key={p.id} className="flex justify-between gap-2">
+                <Link
+                  to="/admin/produtos/$id"
+                  params={{ id: p.id }}
+                  className="truncate hover:text-primary"
+                >
+                  {p.name}
+                </Link>
+                <span className="shrink-0 text-destructive">0 un.</span>
+              </li>
+            ))}
+            {outOfStock.length === 0 && (
+              <li className="text-muted-foreground">Nenhum produto sem estoque.</li>
+            )}
+          </ul>
+        </div>
+
+        <div id="estoque-baixo" className="surface-card scroll-mt-24 rounded-xl p-5">
+          <h2 className="mb-3 font-display text-xl">Estoque baixo</h2>
+          <ul className="space-y-2 text-sm">
+            {lowStock.map((p) => (
+              <li key={p.id} className="flex justify-between gap-2">
+                <Link
+                  to="/admin/produtos/$id"
+                  params={{ id: p.id }}
+                  className="truncate hover:text-primary"
+                >
+                  {p.name}
+                </Link>
+                <span className="shrink-0 text-warning">{totalStock(p)} un.</span>
+              </li>
+            ))}
+            {lowStock.length === 0 && (
+              <li className="text-muted-foreground">Nenhum produto com estoque baixo.</li>
+            )}
+          </ul>
+        </div>
+      </div>
+    </div>
   );
 }
