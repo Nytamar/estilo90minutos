@@ -84,16 +84,13 @@ export function BannerCarousel({ banners }: { banners: Banner[] }) {
 
   return (
     <section
-      className="relative isolate z-0 mx-auto mt-4 w-full max-w-7xl px-4 sm:mt-6 sm:px-6"
+      ref={containerRef}
+      className="relative w-full overflow-hidden bg-secondary"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
       aria-roledescription="carrossel"
       aria-label="Destaques da loja"
     >
-      <div
-        ref={containerRef}
-        className="relative w-full overflow-hidden rounded-[1.75rem] bg-secondary"
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-      >
       <div
         className="flex ease-out"
         style={{
@@ -147,7 +144,6 @@ export function BannerCarousel({ banners }: { banners: Banner[] }) {
           </div>
         </>
       )}
-      </div>
     </section>
   );
 }
@@ -165,7 +161,7 @@ function BannerSlide({ banner, priority }: { banner: Banner; priority: boolean }
         decoding={priority ? "sync" : "async"}
         // @ts-expect-error fetchpriority ainda não está nos tipos do React, mas é suportado pelos navegadores
         fetchpriority={priority ? "high" : "low"}
-        className="block h-[220px] w-full object-cover sm:h-auto"
+        className="block h-[420px] w-full object-cover sm:h-[480px] md:h-[560px] lg:h-[640px]"
       />
     </picture>
   );
