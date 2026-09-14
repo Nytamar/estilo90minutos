@@ -84,7 +84,7 @@ export function BannerCarousel({ banners }: { banners: Banner[] }) {
 
   return (
     <section
-      className="relative mx-auto mt-4 w-full max-w-7xl px-4 sm:mt-6 sm:px-6"
+      className="relative isolate z-0 mx-auto mt-4 w-full max-w-7xl px-4 sm:mt-6 sm:px-6"
       aria-roledescription="carrossel"
       aria-label="Destaques da loja"
     >
