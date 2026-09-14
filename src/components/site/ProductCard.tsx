@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Heart } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
 import type { Product } from "@/lib/catalog";
 import { effectivePrice, totalStock, availabilityOf, availabilityLabel } from "@/lib/catalog";
 import { formatPrice, stockLabel, stockStatus } from "@/lib/format";
@@ -17,12 +17,12 @@ export function ProductCard({ product }: { product: Product }) {
   const availability = availabilityOf(product);
 
   return (
-    <article className="group surface-card hover-lift relative flex h-full flex-col overflow-hidden rounded-2xl">
+    <article className="group surface-card hover-lift relative flex h-full flex-col overflow-hidden rounded-[1.75rem] shadow-sm">
       <button
         type="button"
         aria-label={favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
         onClick={() => toggle(product.id)}
-        className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-background/70 backdrop-blur transition-colors hover:bg-background"
+        className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-background/85 shadow-sm backdrop-blur transition-colors hover:bg-background"
       >
         <Heart
           className={cn(
@@ -33,7 +33,7 @@ export function ProductCard({ product }: { product: Product }) {
       </button>
 
       <Link to="/produto/$slug" params={{ slug: product.slug }} className="flex h-full flex-col">
-        <div className="relative aspect-[4/5] shrink-0 overflow-hidden bg-secondary">
+        <div className="relative aspect-[4/5] shrink-0 overflow-hidden rounded-[1.5rem] bg-secondary m-1.5">
           <img
             src={image}
             alt={`Camisa ${product.name}`}
@@ -41,16 +41,16 @@ export function ProductCard({ product }: { product: Product }) {
             decoding="async"
             width={900}
             height={1100}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="h-full w-full rounded-[1.5rem] object-cover transition-transform duration-700 group-hover:scale-105"
           />
           {hasDiscount && (
-            <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">
+            <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground shadow-sm">
               -{Math.round((1 - price / product.price) * 100)}%
             </span>
           )}
           <span
             className={cn(
-              "absolute left-3 bottom-3 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest",
+              "absolute left-3 bottom-3 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest shadow-sm",
               availability === "pronta_entrega"
                 ? "bg-success/90 text-background"
                 : "bg-secondary/90 text-foreground",
@@ -59,13 +59,22 @@ export function ProductCard({ product }: { product: Product }) {
             {availabilityLabel[availability]}
           </span>
           {status === "out_of_stock" && (
-            <span className="absolute inset-x-0 bottom-0 bg-background/85 py-2 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            <span className="absolute inset-x-0 bottom-0 rounded-b-[1.5rem] bg-background/85 py-2 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               Esgotado
             </span>
           )}
+
+          {/* Botão circular flutuante, meio sobre a foto — leva pra página do
+              produto pra escolher o tamanho (igual clicar no card). */}
+          <span
+            aria-hidden
+            className="absolute -bottom-4 right-4 z-10 grid h-11 w-11 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform group-hover:scale-110"
+          >
+            <ShoppingBag className="h-[18px] w-[18px]" />
+          </span>
         </div>
 
-        <div className="flex flex-1 flex-col gap-1.5 p-3 sm:gap-2 sm:p-4">
+        <div className="flex flex-1 flex-col gap-1.5 px-4 pb-4 pt-6 sm:gap-2">
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground sm:text-[11px]">
             {product.code}
           </p>
