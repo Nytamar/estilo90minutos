@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -14,9 +14,12 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import { HomeTicker } from "@/components/site/HomeTicker";
 import { InstagramFollowPopup } from "@/components/site/InstagramFollowPopup";
 import { Toaster } from "@/components/ui/sonner";
 import { siteConfig } from "@/config/site";
+import { productsQuery } from "@/lib/catalog";
+import { homeTickerMessagesQuery } from "@/lib/home-ticker";
 
 function NotFoundComponent() {
   return (
@@ -127,15 +130,31 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isAdmin = pathname.startsWith("/admin");
+  const isHome = pathname === "/";
+
+  // O ticker ("NOVA PEÇA: ...") só faz sentido na Home, mas precisa
+  // ficar ACIMA do header (pra empilhar como na referência: ticker no
+  // topo do site, header flutuando logo abaixo, por cima do hero). Os
+  // dados usam a mesma queryKey que a própria Home já busca, então o
+  // react-query reaproveita o cache — não dispara uma segunda requisição.
+  const { data: tickerProducts = [] } = useQuery({ ...productsQuery(), enabled: isHome });
+  const { data: tickerMessages = [] } = useQuery({ ...homeTickerMessagesQuery(), enabled: isHome });
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col">
-        <Header />
-        <main className="flex-1">
-          {/* Required: nested routes render here. */}
-          <Outlet />
-        </main>
+        {isHome && <HomeTicker products={tickerProducts} messages={tickerMessages} />}
+        {/* Precisa ser "relative" pra servir de referência ao Header
+            "absolute" (modo overlay, só na Home): assim ele flutua por
+            cima do hero (início do <main>), não por cima do ticker, que
+            fica de fora, acima, no fluxo normal. */}
+        <div className="relative flex flex-1 flex-col">
+          <Header />
+          <main className="flex-1">
+            {/* Required: nested routes render here. */}
+            <Outlet />
+          </main>
+        </div>
         {!isAdmin && <Footer />}
       </div>
       {!isAdmin && <InstagramFollowPopup />}
