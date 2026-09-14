@@ -82,22 +82,23 @@ function Home() {
       
       <HomePromotions promotions={promotions} />
 
-      {/* Benefícios */}
-      <section className="relative z-10 mx-auto mt-6 grid max-w-7xl gap-4 px-4 sm:grid-cols-3 sm:px-6">
+      {/* Benefícios: ícone + texto soltos, sem caixinha, igual à referência */}
+      <section className="relative z-10 mx-auto mt-6 flex max-w-7xl flex-col gap-4 px-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6 sm:px-6">
         {[
           { icon: MessageCircle, title: "Pedido pelo WhatsApp", desc: "Atendimento humano e rápido" },
           { icon: Truck, title: "Enviamos para todo Brasil", desc: "Frete calculado no atendimento" },
           { icon: ShieldCheck, title: "Qualidade garantida", desc: "Tecido premium e acabamento fiel" },
         ].map((b) => (
-          <div key={b.title} className="surface-card flex items-center gap-3 rounded-[0.75rem] p-4">
-            <b.icon className="h-6 w-6 shrink-0 text-primary" />
+          <div key={b.title} className="flex items-center gap-3">
+            <b.icon className="h-5 w-5 shrink-0 text-primary" />
             <div>
-              <p className="text-sm font-semibold">{b.title}</p>
+              <p className="text-sm font-semibold leading-tight">{b.title}</p>
               <p className="text-xs text-muted-foreground">{b.desc}</p>
             </div>
           </div>
         ))}
       </section>
+      <div className="mx-auto mt-5 h-px max-w-7xl bg-border/60" />
 
       <ProductSection
         title="Mais vendidos"
