@@ -1,7 +1,17 @@
 import { useState, useMemo, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Heart, Menu, Search, ShieldCheck, ShoppingBag, X } from "lucide-react";
+import {
+  Heart,
+  Instagram,
+  Menu,
+  MessageCircle,
+  Search,
+  ShieldCheck,
+  ShoppingBag,
+  User,
+  X,
+} from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCart } from "@/hooks/useCart";
@@ -17,7 +27,6 @@ function normalize(value: string) {
     .toLowerCase()
     .trim();
 }
-
 
 const categoryTabs = [
   { slug: "nacionais", label: "Nacionais" },
@@ -94,55 +103,100 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-border bg-background">
       <div className="h-1 w-full bg-primary" />
 
-      <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4 sm:px-6">
-        <Link
-          to="/"
-          className="hidden shrink-0 items-center md:flex"
-          aria-label={`${siteConfig.name} — Home`}
-        >
+      {/* Linha utilitária fina — igual à referência: contato/whats à esquerda,
+          favoritos e carrinho à direita. Só aparece no desktop. */}
+      <div className="hidden border-b border-border/70 bg-secondary/40 md:block">
+        <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 text-xs font-medium text-muted-foreground sm:px-6">
+          <div className="flex items-center gap-5">
+            <a
+              href={`https://wa.me/${siteConfig.whatsappNumber}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 transition-colors hover:text-primary"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              Fale pelo WhatsApp
+            </a>
+            <a
+              href={siteConfig.instagram}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 transition-colors hover:text-primary"
+            >
+              <Instagram className="h-3.5 w-3.5" />
+              {siteConfig.instagramHandle}
+            </a>
+          </div>
+          <div className="flex items-center gap-5">
+            <Link to="/favoritos" className="flex items-center gap-1.5 transition-colors hover:text-primary">
+              <Heart className="h-3.5 w-3.5" />
+              Favoritos
+              {favorites.length > 0 && <span className="font-semibold text-primary">({favorites.length})</span>}
+            </Link>
+            <button
+              type="button"
+              onClick={() => setCartOpen(true)}
+              className="flex items-center gap-1.5 transition-colors hover:text-primary"
+            >
+              <ShoppingBag className="h-3.5 w-3.5" />
+              Carrinho
+              {cartCount > 0 && <span className="font-semibold text-primary">({cartCount})</span>}
+            </button>
+            <Link to="/admin" className="flex items-center gap-1.5 transition-colors hover:text-primary">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Admin
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Logo grande, centralizada — linha própria, como na referência. */}
+      <div className="hidden justify-center py-4 md:flex">
+        <Link to="/" aria-label={`${siteConfig.name} — Home`}>
           <img
             src={siteConfig.logo}
             alt={`${siteConfig.name} logo`}
             width={1920}
             height={512}
-            className="h-11 w-auto sm:h-12"
+            className="h-14 w-auto"
           />
         </Link>
+      </div>
 
-        <form onSubmit={onSearch} className="relative ml-2 hidden flex-1 md:block">
-          <div className="flex items-center gap-2 rounded-full bg-secondary px-5 py-3">
-            <input
-              value={term}
-              onChange={(e) => setTerm(e.target.value)}
-              onFocus={() => setSuggestOpen(true)}
-              onBlur={() => setTimeout(() => setSuggestOpen(false), 100)}
-              placeholder="O que você procura?"
-              aria-label="Buscar produtos"
-              autoComplete="off"
-              className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-            />
-            <button type="submit" aria-label="Buscar">
-              <Search className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
-            </button>
-          </div>
-          <SuggestionList />
-        </form>
+      {/* Categorias + busca lado a lado — linha inferior do header no desktop. */}
+      <div className="hidden border-t border-border md:block">
+        <div className="mx-auto flex max-w-7xl items-center gap-8 px-4 py-3 sm:px-6">
+          <nav className="flex items-center gap-7 overflow-x-auto">
+            <Link
+              to="/novidades"
+              className="whitespace-nowrap text-sm font-bold uppercase tracking-wide text-primary transition-colors hover:opacity-80"
+            >
+              Novidades
+            </Link>
+            {categoryTabs.map((c) => (
+              <Link
+                key={c.slug}
+                to="/catalogo"
+                search={{ categoria: c.slug }}
+                className="whitespace-nowrap text-sm font-bold uppercase tracking-wide text-foreground transition-colors hover:text-primary"
+              >
+                {c.label}
+              </Link>
+            ))}
+            {extraLinks.map((l) => (
+              <Link
+                key={l.to}
+                to={l.to}
+                className="whitespace-nowrap text-sm font-bold uppercase tracking-wide text-foreground transition-colors hover:text-primary"
+                activeProps={{ className: "text-primary" }}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
 
-        {/* Mobile: menu, busca, favoritos e carrinho numa linha compacta, estilo apps de loja */}
-        <div className="flex w-full items-center gap-2 md:hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Abrir menu"
-            className="shrink-0"
-            onClick={() => setOpen((v) => !v)}
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-
-          <form onSubmit={onSearch} className="relative min-w-0 flex-1">
-            <div className="flex items-center gap-2 rounded-full bg-secondary px-3 py-2">
-              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <form onSubmit={onSearch} className="relative ml-auto w-full max-w-xs">
+            <div className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2.5">
               <input
                 value={term}
                 onChange={(e) => setTerm(e.target.value)}
@@ -151,15 +205,44 @@ export function Header() {
                 placeholder="O que você procura?"
                 aria-label="Buscar produtos"
                 autoComplete="off"
-                className="w-full min-w-0 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
+              <button type="submit" aria-label="Buscar">
+                <Search className="h-4 w-4 text-muted-foreground transition-colors hover:text-primary" />
+              </button>
             </div>
             <SuggestionList />
           </form>
+        </div>
+      </div>
 
-          <Button asChild variant="ghost" size="icon" aria-label="Favoritos" className="shrink-0">
+      {/* MOBILE — hambúrguer, logo central e ícones numa única linha, com a
+          busca em linha própria logo abaixo, igual à referência. */}
+      <div className="flex items-center gap-2 px-4 py-2.5 md:hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Abrir menu"
+          className="shrink-0"
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+
+        <Link to="/" aria-label={`${siteConfig.name} — Home`} className="mx-auto shrink-0">
+          <img
+            src={siteConfig.logo}
+            alt={`${siteConfig.name} logo`}
+            width={1920}
+            height={512}
+            className="h-8 w-auto"
+          />
+        </Link>
+
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <Button asChild variant="ghost" size="icon" aria-label="Favoritos">
             <Link to="/favoritos" className="relative">
-              <Heart className="h-5 w-5" />
+              <User className="h-5 w-5" />
               {favorites.length > 0 && (
                 <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
                   {favorites.length}
@@ -167,23 +250,6 @@ export function Header() {
               )}
             </Link>
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Carrinho"
-            className="relative shrink-0"
-            onClick={() => setCartOpen(true)}
-          >
-            <ShoppingBag className="h-5 w-5" />
-            {cartCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                {cartCount}
-              </span>
-            )}
-          </Button>
-        </div>
-
-        <div className="ml-auto hidden items-center gap-1 md:flex">
           <Button
             variant="ghost"
             size="icon"
@@ -198,67 +264,26 @@ export function Header() {
               </span>
             )}
           </Button>
-          <Button asChild variant="ghost" size="icon" aria-label="Favoritos">
-            <Link to="/favoritos" className="relative">
-              <Heart className="h-5 w-5" />
-              {favorites.length > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                  {favorites.length}
-                </span>
-              )}
-            </Link>
-          </Button>
-          <Button asChild variant="ghost" size="icon" aria-label="Painel administrativo">
-            <Link to="/admin">
-              <ShieldCheck className="h-5 w-5" />
-            </Link>
-          </Button>
         </div>
       </div>
 
-      {/* Logo pequena no mobile — mantida, só reduzida e centralizada abaixo da barra de busca */}
-      <div className="flex justify-center border-t border-border py-2 md:hidden">
-        <Link to="/" aria-label={`${siteConfig.name} — Home`}>
-          <img
-            src={siteConfig.logo}
-            alt={`${siteConfig.name} logo`}
-            width={1920}
-            height={512}
-            className="h-7 w-auto"
-          />
-        </Link>
-      </div>
-
-      {/* Barra de categorias */}
-      <div className="hidden border-t border-border md:block">
-        <nav className="mx-auto flex max-w-7xl items-center justify-center gap-8 overflow-x-auto px-4 py-3 sm:px-6">
-          <Link
-            to="/novidades"
-            className="whitespace-nowrap text-sm font-bold text-primary transition-colors hover:opacity-80"
-          >
-            Novidades
-          </Link>
-          {categoryTabs.map((c) => (
-            <Link
-              key={c.slug}
-              to="/catalogo"
-              search={{ categoria: c.slug }}
-              className="whitespace-nowrap text-sm font-bold text-foreground transition-colors hover:text-primary"
-            >
-              {c.label}
-            </Link>
-          ))}
-          {extraLinks.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              className="whitespace-nowrap text-sm font-bold text-foreground transition-colors hover:text-primary"
-              activeProps={{ className: "text-primary" }}
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
+      <div className="px-4 pb-3 md:hidden">
+        <form onSubmit={onSearch} className="relative">
+          <div className="flex items-center gap-2 rounded-full bg-secondary px-3 py-2">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <input
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              onFocus={() => setSuggestOpen(true)}
+              onBlur={() => setTimeout(() => setSuggestOpen(false), 100)}
+              placeholder="O que você procura?"
+              aria-label="Buscar produtos"
+              autoComplete="off"
+              className="w-full min-w-0 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            />
+          </div>
+          <SuggestionList />
+        </form>
       </div>
 
       {open && (
