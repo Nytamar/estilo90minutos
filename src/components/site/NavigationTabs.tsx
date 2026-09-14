@@ -127,11 +127,11 @@ export function NavigationTabs({
   const hasBothRegions = clubsNacionais.length > 0 && clubsEuropeus.length > 0;
 
   return (
-    <section className="mx-auto max-w-7xl px-0 sm:px-6">
+    <section className="mx-auto max-w-7xl px-4 sm:px-6">
       {/* Barra em degradê azul — a altura (topo + área reservada fixa abaixo) é
           sempre a mesma, não importa qual aba está ativa. */}
       <div
-        className="relative overflow-hidden rounded-none px-4 pt-6 text-center sm:rounded-2xl sm:px-6"
+        className="relative overflow-hidden rounded-[1.75rem] px-4 pt-6 text-center sm:px-6"
         style={{
           background:
             "linear-gradient(120deg, #0a1a33 0%, #123a6b 45%, #1e5aa8 75%, #123a6b 100%)",
