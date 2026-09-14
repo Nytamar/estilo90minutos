@@ -84,13 +84,16 @@ export function BannerCarousel({ banners }: { banners: Banner[] }) {
 
   return (
     <section
-      ref={containerRef}
-      className="relative w-full overflow-hidden bg-secondary"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      className="relative mx-auto mt-4 w-full max-w-7xl px-4 sm:mt-6 sm:px-6"
       aria-roledescription="carrossel"
       aria-label="Destaques da loja"
     >
+      <div
+        ref={containerRef}
+        className="relative w-full overflow-hidden rounded-[1.75rem] bg-secondary"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
       <div
         className="flex ease-out"
         style={{
@@ -144,6 +147,7 @@ export function BannerCarousel({ banners }: { banners: Banner[] }) {
           </div>
         </>
       )}
+      </div>
     </section>
   );
 }
