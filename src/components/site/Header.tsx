@@ -100,12 +100,16 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background">
+    <header className="sticky top-0 isolate z-50 border-b border-border bg-background">
+      {/* fundo sólido garantido atrás de TODAS as linhas do cabeçalho — evita
+          que o hero/banner da página apareça "vazando" por trás do header,
+          já que ele fica logo acima da hero na mesma pilha de empilhamento. */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-background" />
       <div className="h-1 w-full bg-primary" />
 
       {/* Linha utilitária fina — igual à referência: contato/whats à esquerda,
           favoritos e carrinho à direita. Só aparece no desktop. */}
-      <div className="hidden border-b border-border/70 bg-secondary/40 md:block">
+      <div className="relative hidden border-b border-border/70 bg-secondary/40 md:block">
         <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 text-xs font-medium text-muted-foreground sm:px-6">
           <div className="flex items-center gap-5">
             <a
@@ -151,7 +155,7 @@ export function Header() {
       </div>
 
       {/* Logo grande, centralizada — linha própria, como na referência. */}
-      <div className="hidden justify-center py-4 md:flex">
+      <div className="relative hidden justify-center bg-background py-4 md:flex">
         <Link to="/" aria-label={`${siteConfig.name} — Home`}>
           <img
             src={siteConfig.logo}
@@ -164,7 +168,7 @@ export function Header() {
       </div>
 
       {/* Categorias + busca lado a lado — linha inferior do header no desktop. */}
-      <div className="hidden border-t border-border md:block">
+      <div className="relative hidden border-t border-border bg-background md:block">
         <div className="mx-auto flex max-w-7xl items-center gap-8 px-4 py-3 sm:px-6">
           <nav className="flex items-center gap-7 overflow-x-auto">
             <Link
@@ -218,7 +222,7 @@ export function Header() {
 
       {/* MOBILE — hambúrguer, logo central e ícones numa única linha, com a
           busca em linha própria logo abaixo, igual à referência. */}
-      <div className="flex items-center gap-2 px-4 py-2.5 md:hidden">
+      <div className="relative flex items-center gap-2 bg-background px-4 py-2.5 md:hidden">
         <Button
           variant="ghost"
           size="icon"
@@ -267,7 +271,7 @@ export function Header() {
         </div>
       </div>
 
-      <div className="px-4 pb-3 md:hidden">
+      <div className="relative bg-background px-4 pb-3 md:hidden">
         <form onSubmit={onSearch} className="relative">
           <div className="flex items-center gap-2 rounded-full bg-secondary px-3 py-2">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
