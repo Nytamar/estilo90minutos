@@ -121,7 +121,7 @@ export function HomePromotions({
                   aspect-[3/4]
                   w-full
                   overflow-hidden
-                  rounded-xl
+                  rounded-[2px]
                   border
                   border-border/50
                   bg-card
