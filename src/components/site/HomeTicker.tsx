@@ -56,7 +56,7 @@ export function HomeTicker({
           w-max
           items-center
           whitespace-nowrap
-          py-4
+          py-1.5
           hover:[animation-play-state:paused]
         "
       >
@@ -67,14 +67,14 @@ export function HomeTicker({
                 inline-flex
                 items-center
                 justify-center
-                gap-8
-                px-8
-                text-sm
+                gap-6
+                px-6
+                text-[11px]
                 font-semibold
                 uppercase
-                tracking-[0.14em]
+                tracking-[0.12em]
                 text-primary-foreground
-                sm:text-base
+                sm:text-xs
               "
             >
               <span>{item.text}</span>
