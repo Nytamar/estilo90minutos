@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import { Heart, Instagram, Search, ShieldCheck, ShoppingBag } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { Banner } from "@/lib/banners";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/config/site";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useCart } from "@/hooks/useCart";
 
 const AUTOPLAY_MS = 6000;
 
@@ -21,13 +23,15 @@ const extraLinks = [
 ] as const;
 
 /**
- * Nav "flutuante" só pro desktop da home: logo + categorias + busca soltos,
- * cada um num "pill" branco, sobrepostos direto na foto do banner — igual
- * à referência que o cliente mandou (nada de barra sólida por trás).
+ * Nav "flutuante" só pro desktop da home: logo solta (sem fundo) ao lado das
+ * categorias, e favoritos/carrinho/admin/instagram junto da busca — tudo
+ * sobreposto direto na foto do banner, igual à referência do cliente.
  */
 function OverlayNav() {
   const [term, setTerm] = useState("");
   const navigate = useNavigate();
+  const { favorites } = useFavorites();
+  const { count: cartCount } = useCart();
 
   function onSearch(e: FormEvent) {
     e.preventDefault();
@@ -35,16 +39,12 @@ function OverlayNav() {
   }
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 hidden flex-col items-center gap-3 px-6 pt-5 md:flex">
-      <Link
-        to="/"
-        aria-label={`${siteConfig.name} — Home`}
-        className="pointer-events-auto rounded-full bg-background/95 px-5 py-2 shadow-lg backdrop-blur"
-      >
-        <img src={siteConfig.logo} alt={`${siteConfig.name} logo`} className="h-9 w-auto" />
-      </Link>
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 hidden items-center justify-between gap-4 px-6 pt-5 md:flex">
+      <div className="flex items-center gap-4">
+        <Link to="/" aria-label={`${siteConfig.name} — Home`} className="pointer-events-auto shrink-0">
+          <img src={siteConfig.logo} alt={`${siteConfig.name} logo`} className="h-10 w-auto drop-shadow" />
+        </Link>
 
-      <div className="flex w-full max-w-5xl items-center justify-between gap-4">
         <nav className="pointer-events-auto flex items-center gap-6 rounded-full bg-background/95 px-6 py-3 shadow-lg backdrop-blur">
           <Link
             to="/novidades"
@@ -72,24 +72,63 @@ function OverlayNav() {
             </Link>
           ))}
         </nav>
-
-        <form
-          onSubmit={onSearch}
-          className="pointer-events-auto flex w-full max-w-xs items-center gap-2 rounded-full bg-background/95 px-4 py-2.5 shadow-lg backdrop-blur"
-        >
-          <input
-            value={term}
-            onChange={(e) => setTerm(e.target.value)}
-            placeholder="O que você procura?"
-            aria-label="Buscar produtos"
-            autoComplete="off"
-            className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-          />
-          <button type="submit" aria-label="Buscar">
-            <Search className="h-4 w-4 text-muted-foreground transition-colors hover:text-primary" />
-          </button>
-        </form>
       </div>
+
+      <form
+        onSubmit={onSearch}
+        className="pointer-events-auto flex items-center gap-3 rounded-full bg-background/95 px-4 py-2.5 shadow-lg backdrop-blur"
+      >
+        <a
+          href={siteConfig.instagram}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Instagram"
+          className="text-foreground transition-colors hover:text-primary"
+        >
+          <Instagram className="h-4 w-4" />
+        </a>
+        <Link
+          to="/favoritos"
+          aria-label="Favoritos"
+          className="relative text-foreground transition-colors hover:text-primary"
+        >
+          <Heart className="h-4 w-4" />
+          {favorites.length > 0 && (
+            <span className="absolute -right-1.5 -top-1.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-primary px-0.5 text-[9px] font-bold text-primary-foreground">
+              {favorites.length}
+            </span>
+          )}
+        </Link>
+        <button
+          type="button"
+          aria-label="Carrinho"
+          className="relative text-foreground transition-colors hover:text-primary"
+        >
+          <ShoppingBag className="h-4 w-4" />
+          {cartCount > 0 && (
+            <span className="absolute -right-1.5 -top-1.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-primary px-0.5 text-[9px] font-bold text-primary-foreground">
+              {cartCount}
+            </span>
+          )}
+        </button>
+        <Link to="/admin" aria-label="Admin" className="text-foreground transition-colors hover:text-primary">
+          <ShieldCheck className="h-4 w-4" />
+        </Link>
+
+        <span className="h-4 w-px bg-border" aria-hidden />
+
+        <input
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          placeholder="O que você procura?"
+          aria-label="Buscar produtos"
+          autoComplete="off"
+          className="w-40 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground lg:w-56"
+        />
+        <button type="submit" aria-label="Buscar">
+          <Search className="h-4 w-4 text-muted-foreground transition-colors hover:text-primary" />
+        </button>
+      </form>
     </div>
   );
 }
@@ -107,79 +146,16 @@ export function BannerCarousel({
 }) {
   const total = banners.length;
   const multiple = total > 1;
-
-  // Com mais de 1 banner, adicionamos um clone do último no início e um
-  // clone do primeiro no fim. Isso permite "avançar" ou "voltar" sem
-  // nunca precisar pular de volta ao índice 0 de forma visível — o pulo
-  // acontece só entre os clones, sem transição, então ninguém percebe.
-  const slides = multiple ? [banners[total - 1], ...banners, banners[0]] : banners;
-  const [index, setIndex] = useState(multiple ? 1 : 0);
-  const [withTransition, setWithTransition] = useState(true);
+  const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [dragPx, setDragPx] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const touchStartX = useRef<number | null>(null);
-  const dragging = useRef(false);
 
   useEffect(() => {
     if (!multiple || paused) return;
-    const id = window.setInterval(() => setIndex((i) => i + 1), AUTOPLAY_MS);
+    const id = window.setInterval(() => setIndex((i) => (i + 1) % total), AUTOPLAY_MS);
     return () => window.clearInterval(id);
-  }, [multiple, paused]);
+  }, [multiple, paused, total]);
 
   if (total === 0) return null;
-
-  const go = (dir: number) => setIndex((i) => i + dir);
-
-  // Ao terminar a transição, se paramos num clone, "teletransporta"
-  // (sem animação) para o slide real correspondente.
-  function handleTransitionEnd() {
-    if (!multiple) return;
-    if (index === 0) {
-      setWithTransition(false);
-      setIndex(total);
-    } else if (index === total + 1) {
-      setWithTransition(false);
-      setIndex(1);
-    }
-  }
-
-  // Reativa a transição no próximo frame, depois do "teletransporte" acima.
-  useEffect(() => {
-    if (withTransition) return;
-    const raf = requestAnimationFrame(() => setWithTransition(true));
-    return () => cancelAnimationFrame(raf);
-  }, [withTransition]);
-
-  const activeDot = !multiple ? 0 : index === 0 ? total - 1 : index === total + 1 ? 0 : index - 1;
-
-  // --- Arrastar com o dedo no celular ---
-  function onTouchStart(e: React.TouchEvent) {
-    if (!multiple) return;
-    touchStartX.current = e.touches[0].clientX;
-    dragging.current = true;
-    setPaused(true);
-    setWithTransition(false); // segue o dedo 1:1, sem "atraso" de animação
-  }
-
-  function onTouchMove(e: React.TouchEvent) {
-    if (!dragging.current || touchStartX.current === null) return;
-    setDragPx(e.touches[0].clientX - touchStartX.current);
-  }
-
-  function onTouchEnd() {
-    if (!dragging.current) return;
-    dragging.current = false;
-    touchStartX.current = null;
-    setPaused(false);
-
-    const width = containerRef.current?.clientWidth ?? 1;
-    const threshold = width * 0.15; // arrastou mais de 15% da largura → troca de slide
-    setWithTransition(true);
-    if (dragPx > threshold) go(-1);
-    else if (dragPx < -threshold) go(1);
-    setDragPx(0);
-  }
 
   return (
     <section
@@ -191,7 +167,6 @@ export function BannerCarousel({
       aria-label="Destaques da loja"
     >
       <div
-        ref={containerRef}
         className={cn(
           "relative w-full overflow-hidden bg-secondary",
           fullBleed ? "rounded-none" : "rounded-[1.75rem]",
@@ -199,89 +174,44 @@ export function BannerCarousel({
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
-      {overlayNav && <OverlayNav />}
-      <div
-        className="flex ease-out"
-        style={{
-          transform: `translateX(calc(-${index * 100}% + ${dragPx}px))`,
-          transition: withTransition ? "transform 700ms ease-out" : "none",
-          touchAction: "pan-y",
-        }}
-        onTransitionEnd={handleTransitionEnd}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        onTouchCancel={onTouchEnd}
-      >
-        {slides.map((b, i) => (
-          <BannerSlide
-            key={`${b.id}-${i}`}
-            banner={b}
-            priority={i === (multiple ? 1 : 0)}
-            tall={fullBleed}
-          />
-        ))}
-      </div>
+        {overlayNav && <OverlayNav />}
 
-      {multiple && (
-        <>
-          <button
-            type="button"
-            onClick={() => go(-1)}
-            aria-label="Banner anterior"
-            className={cn(
-              "absolute top-1/2 z-20 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-black/15 text-white/70 opacity-60 transition hover:bg-black/30 hover:opacity-100 sm:h-9 sm:w-9",
-              fullBleed ? "left-3 sm:left-16" : "left-2 sm:left-4",
-            )}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => go(1)}
-            aria-label="Próximo banner"
-            className="absolute right-2 top-1/2 z-20 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-black/15 text-white/70 opacity-60 transition hover:bg-black/30 hover:opacity-100 sm:right-4 sm:h-9 sm:w-9"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+        {/* Esmaecendo de uma imagem pra outra, ao invés de deslizar. */}
+        <div className="relative">
+          {banners.map((b, i) => (
+            <BannerSlide
+              key={b.id}
+              banner={b}
+              priority={i === index}
+              tall={fullBleed}
+              active={i === index}
+              stacked={i > 0}
+            />
+          ))}
+        </div>
 
-          {fullBleed ? (
-            /* Numeração vertical no canto esquerdo — igual à referência.
-               Fica encostada na borda, empilhada de cima a baixo. */
-            <div className="absolute left-3 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-3 sm:left-5">
-              {banners.map((b, i) => (
-                <button
-                  key={b.id}
-                  type="button"
-                  aria-label={`Ir para o banner ${i + 1}`}
-                  onClick={() => setIndex(i + 1)}
-                  className={cn(
-                    "text-sm font-bold tabular-nums transition-colors",
-                    i === activeDot ? "text-primary" : "text-white/50 hover:text-white/80",
-                  )}
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2">
-              {banners.map((b, i) => (
-                <button
-                  key={b.id}
-                  type="button"
-                  aria-label={`Ir para o banner ${i + 1}`}
-                  onClick={() => setIndex(i + 1)}
-                  className={cn(
-                    "h-1.5 rounded-full bg-foreground/30 transition-all",
-                    i === activeDot ? "w-6 bg-primary" : "w-2.5 hover:bg-foreground/50",
-                  )}
-                />
-              ))}
-            </div>
-          )}
-        </>
-      )}
+        {multiple && (
+          /* Numeração vertical com bolinha, no canto esquerdo — igual à
+             referência: ativa preenchida, inativas só o contorno. */
+          <div className="absolute left-3 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-3 sm:left-5">
+            {banners.map((b, i) => (
+              <button
+                key={b.id}
+                type="button"
+                aria-label={`Ir para o banner ${i + 1}`}
+                onClick={() => setIndex(i)}
+                className={cn(
+                  "grid h-7 w-7 place-items-center rounded-full text-xs font-bold tabular-nums transition-colors",
+                  i === index
+                    ? "bg-background text-foreground shadow"
+                    : "border border-white/35 text-white/45 hover:border-white/60 hover:text-white/70",
+                )}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -291,10 +221,14 @@ function BannerSlide({
   banner,
   priority,
   tall = false,
+  active,
+  stacked,
 }: {
   banner: Banner;
   priority: boolean;
   tall?: boolean;
+  active: boolean;
+  stacked: boolean;
 }) {
   const img = (
     <picture>
@@ -316,7 +250,11 @@ function BannerSlide({
     </picture>
   );
 
-  const wrapper = "block w-full shrink-0";
+  const wrapper = cn(
+    "block w-full transition-opacity duration-700 ease-in-out",
+    stacked && "absolute inset-0",
+    active ? "opacity-100" : "pointer-events-none opacity-0",
+  );
 
   if (banner.link_url) {
     const external = /^https?:\/\//i.test(banner.link_url);
