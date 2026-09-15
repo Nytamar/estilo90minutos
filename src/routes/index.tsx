@@ -68,31 +68,31 @@ function Home() {
         {siteConfig.name} — Camisas de futebol nacionais, europeias, seleções e retrô
       </h1>
 
-      {banners.length > 0 && <BannerCarousel banners={banners} />}
+      {banners.length > 0 && <BannerCarousel banners={banners} overlayNav fullBleed />}
 
-      {/* Os banners de promoção ficam flutuando por cima da borda
-          inferior do hero (a margem negativa está dentro do próprio
-          HomePromotions) — igual ao modelo de referência. O ticker
-          "NOVA PEÇA: ..." não entra mais aqui: ele agora fica no topo
-          do site, acima do header (ver routes/__root.tsx). */}
-      <HomePromotions promotions={promotions} />
+      {/* Cards de novidades "grudados" na borda de baixo do hero, se
+          sobrepondo a ele — por isso a margem negativa aqui em cima. */}
+      <div className="relative z-10 -mt-24 sm:-mt-28 lg:-mt-32">
+        <HomePromotions promotions={promotions} />
+      </div>
 
-      {/* Benefícios */}
-      <section className="relative z-10 mx-auto mt-6 grid max-w-7xl gap-4 px-4 sm:grid-cols-3 sm:px-6">
+      {/* Benefícios: ícone + texto soltos, logo abaixo do hero, igual à referência */}
+      <section className="relative z-10 mx-auto mt-2 flex max-w-7xl flex-col gap-3 px-4 sm:mt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6 sm:px-6">
         {[
           { icon: MessageCircle, title: "Pedido pelo WhatsApp", desc: "Atendimento humano e rápido" },
           { icon: Truck, title: "Enviamos para todo Brasil", desc: "Frete calculado no atendimento" },
           { icon: ShieldCheck, title: "Qualidade garantida", desc: "Tecido premium e acabamento fiel" },
         ].map((b) => (
-          <div key={b.title} className="surface-card flex items-center gap-3 rounded-[0.75rem] p-4">
-            <b.icon className="h-6 w-6 shrink-0 text-primary" />
+          <div key={b.title} className="flex items-center gap-3">
+            <b.icon className="h-5 w-5 shrink-0 text-primary" />
             <div>
-              <p className="text-sm font-semibold">{b.title}</p>
+              <p className="text-sm font-semibold leading-tight">{b.title}</p>
               <p className="text-xs text-muted-foreground">{b.desc}</p>
             </div>
           </div>
         ))}
       </section>
+      <div className="mx-auto mt-5 h-px max-w-7xl bg-border/60" />
 
       <ProductSection
         title="Mais vendidos"
@@ -167,21 +167,24 @@ function ProductSection({
 }) {
   if (!loading && products.length === 0) return null;
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-3xl">
+    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+      <div className="mb-4 flex items-center justify-between border-b border-border/70 pb-3 sm:mb-6">
+        <h2 className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-foreground sm:text-sm">
           {icon} {title}
         </h2>
-        <Link to="/catalogo" className="text-sm text-primary hover:underline">
-          Ver tudo
+        <Link
+          to="/catalogo"
+          className="text-xs font-semibold uppercase tracking-wide text-primary hover:underline sm:text-sm"
+        >
+          Ver todos
         </Link>
       </div>
       {loading ? (
-        <div className="-mx-4 flex gap-5 overflow-hidden sm:mx-0">
+        <div className="-mx-4 flex gap-4 overflow-hidden sm:mx-0 sm:gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="aspect-[3/4] w-[44%] shrink-0 animate-pulse rounded-2xl bg-card sm:w-[42%] lg:w-[23%]"
+              className="aspect-[4/5] w-[46%] shrink-0 animate-pulse rounded-2xl bg-card sm:w-[31%] lg:w-[23%]"
             />
           ))}
         </div>
@@ -189,7 +192,7 @@ function ProductSection({
         <div className="-mx-4 sm:mx-0">
           <ProductScroller>
             {products.map((p) => (
-              <div key={p.id} className="w-[44%] shrink-0 snap-start sm:w-[42%] lg:w-[23%]">
+              <div key={p.id} className="w-[46%] shrink-0 snap-start sm:w-[31%] lg:w-[23%]">
                 <ProductCard product={p} />
               </div>
             ))}
