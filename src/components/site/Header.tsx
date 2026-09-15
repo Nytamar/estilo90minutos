@@ -1,15 +1,27 @@
 import { useState, useMemo, type FormEvent } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Heart, Menu, Search, ShieldCheck, ShoppingBag, X } from "lucide-react";
+import {
+  Heart,
+  Instagram,
+  Menu,
+  MessageCircle,
+  Search,
+  ShieldCheck,
+  ShoppingBag,
+  User,
+  X,
+} from "lucide-react";
 import { siteConfig } from "@/config/site";
+import { cn } from "@/lib/utils";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCart } from "@/hooks/useCart";
 import { CartDrawer } from "@/components/site/CartDrawer";
+import { HomeTicker } from "@/components/site/HomeTicker";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { productsQuery, effectivePrice, type Product } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
+import { homeTickerMessagesQuery } from "@/lib/home-ticker";
 
 function normalize(value: string) {
   return value
@@ -18,7 +30,6 @@ function normalize(value: string) {
     .toLowerCase()
     .trim();
 }
-
 
 const categoryTabs = [
   { slug: "nacionais", label: "Nacionais" },
@@ -42,12 +53,9 @@ export function Header() {
   const { count: cartCount } = useCart();
   const navigate = useNavigate();
   const { data: allProducts = [] } = useQuery(productsQuery());
-
-  // Só na Home a gente tem um hero por trás pra "flutuar" o header em
-  // cima — nas outras páginas (fundo branco comum) ele continua sólido
-  // e fixo no topo, como sempre foi.
+  const { data: tickerMessages = [] } = useQuery(homeTickerMessagesQuery());
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const overlay = pathname === "/";
+  const isHome = pathname === "/";
 
   const suggestions = useMemo(() => {
     const q = normalize(term);
@@ -97,177 +105,134 @@ export function Header() {
     );
   }
 
-  function SearchForm({ className }: { className?: string }) {
-    return (
-      <form onSubmit={onSearch} className={cn("relative", className)}>
-        <div className="flex items-center gap-2 rounded-full bg-background/95 px-5 py-3 shadow-lg backdrop-blur">
-          <input
-            value={term}
-            onChange={(e) => setTerm(e.target.value)}
-            onFocus={() => setSuggestOpen(true)}
-            onBlur={() => setTimeout(() => setSuggestOpen(false), 100)}
-            placeholder="O que você procura?"
-            aria-label="Buscar produtos"
-            autoComplete="off"
-            className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-          />
-          <button type="submit" aria-label="Buscar">
-            <Search className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
-          </button>
-        </div>
-        <SuggestionList />
-      </form>
-    );
-  }
-
-  function NavLinks({ className, linkClassName }: { className?: string; linkClassName?: string }) {
-    return (
-      <nav className={className}>
-        <Link
-          to="/novidades"
-          className={cn("whitespace-nowrap text-sm font-bold text-primary transition-colors hover:opacity-80", linkClassName)}
-        >
-          Novidades
-        </Link>
-        {categoryTabs.map((c) => (
-          <Link
-            key={c.slug}
-            to="/catalogo"
-            search={{ categoria: c.slug }}
-            className={cn("whitespace-nowrap text-sm font-bold text-foreground transition-colors hover:text-primary", linkClassName)}
-          >
-            {c.label}
-          </Link>
-        ))}
-        {extraLinks.map((l) => (
-          <Link
-            key={l.to}
-            to={l.to}
-            className={cn("whitespace-nowrap text-sm font-bold text-foreground transition-colors hover:text-primary", linkClassName)}
-            activeProps={{ className: "text-primary" }}
-          >
-            {l.label}
-          </Link>
-        ))}
-      </nav>
-    );
-  }
-
-  const Logo = ({ className }: { className?: string }) => (
-    <Link to="/" aria-label={`${siteConfig.name} — Home`} className="inline-flex shrink-0 items-center">
-      <img
-        src={siteConfig.logo}
-        alt={`${siteConfig.name} logo`}
-        width={1920}
-        height={512}
-        className={className}
-      />
-    </Link>
-  );
-
   return (
     <header
       className={cn(
-        "z-50 w-full",
-        overlay ? "absolute inset-x-0 top-0 bg-transparent" : "sticky top-0 border-b border-border bg-background",
+        "isolate z-50 bg-background",
+        isHome ? "relative md:static" : "sticky top-0 border-b border-border",
       )}
     >
-      {!overlay && <div className="h-1 w-full bg-primary" />}
+      {/* Faixa de novidades passando: fica no topo absoluto de tudo, acima
+          até da logo/menu — só na home, igual à referência. */}
+      {isHome && <HomeTicker products={allProducts} messages={tickerMessages} />}
 
-      {/* ================= Desktop ================= */}
-      {overlay ? (
-        // Home: logo centralizada numa linha própria, e por baixo dela o
-        // menu (dentro de uma pílula, pra ficar legível em cima da foto),
-        // a busca e os links de carrinho/admin — tudo "flutuando" sobre
-        // o hero, sem fundo próprio no <header>.
-        <div className="mx-auto hidden max-w-7xl flex-col items-center gap-4 px-4 pb-5 pt-6 sm:px-6 md:flex">
-          <Logo className="h-12 w-auto drop-shadow-lg lg:h-14" />
-          <div className="flex w-full items-center gap-4">
-            <NavLinks
-              className="flex shrink-0 items-center gap-6 rounded-full bg-background/95 px-6 py-3 shadow-lg backdrop-blur"
-            />
-            <SearchForm className="min-w-0 flex-1" />
-            <div className="flex shrink-0 items-center gap-5 text-sm font-semibold text-white drop-shadow-md">
-              <button
-                type="button"
-                onClick={() => setCartOpen(true)}
-                className="relative flex items-center gap-1.5 transition-opacity hover:opacity-80"
-              >
-                <ShoppingBag className="h-4 w-4" />
-                Carrinho
-                {cartCount > 0 && (
-                  <span className="absolute -right-3 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-              <Link to="/admin" className="flex items-center gap-1.5 transition-opacity hover:opacity-80">
-                <ShieldCheck className="h-4 w-4" />
-                Admin
-              </Link>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="hidden md:block">
-          <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4 sm:px-6">
-            <Logo className="h-11 w-auto sm:h-12" />
-            <SearchForm className="ml-2 flex-1" />
-            <div className="ml-auto flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Carrinho"
-                className="relative"
-                onClick={() => setCartOpen(true)}
-              >
-                <ShoppingBag className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                    {cartCount}
-                  </span>
-                )}
-              </Button>
-              <Button asChild variant="ghost" size="icon" aria-label="Favoritos">
-                <Link to="/favoritos" className="relative">
-                  <Heart className="h-5 w-5" />
-                  {favorites.length > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                      {favorites.length}
-                    </span>
-                  )}
-                </Link>
-              </Button>
-              <Button asChild variant="ghost" size="icon" aria-label="Painel administrativo">
-                <Link to="/admin">
-                  <ShieldCheck className="h-5 w-5" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          <div className="border-t border-border">
-            <NavLinks className="mx-auto flex max-w-7xl items-center justify-center gap-8 overflow-x-auto px-4 py-3 sm:px-6" />
-          </div>
-        </div>
+      {/* No desktop da home, o menu vive flutuando dentro do próprio hero
+          (ver overlayNav em BannerCarousel) — então aqui não repetimos a
+          barra sólida, só a versão mobile continua abaixo. */}
+      {!isHome && (
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-background" />
       )}
+      {!isHome && <div className="h-1 w-full bg-primary" />}
 
-      {/* ================= Mobile ================= */}
-      <div className="md:hidden">
-        <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Abrir menu"
-            className={cn("shrink-0", overlay && !open && "text-white hover:bg-white/15 hover:text-white")}
-            onClick={() => setOpen((v) => !v)}
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+      {/* Linha utilitária fina — igual à referência: contato/whats à esquerda,
+          favoritos e carrinho à direita. Só aparece no desktop. */}
+      <div
+        className={cn(
+          "relative hidden border-b border-border/70 bg-secondary/40",
+          isHome ? "md:hidden" : "md:block",
+        )}
+      >
+        <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 text-xs font-medium text-muted-foreground sm:px-6">
+          <div className="flex items-center gap-5">
+            <a
+              href={`https://wa.me/${siteConfig.whatsappNumber}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 transition-colors hover:text-primary"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              Fale pelo WhatsApp
+            </a>
+            <a
+              href={siteConfig.instagram}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 transition-colors hover:text-primary"
+            >
+              <Instagram className="h-3.5 w-3.5" />
+              {siteConfig.instagramHandle}
+            </a>
+          </div>
+          <div className="flex items-center gap-5">
+            <Link to="/favoritos" className="flex items-center gap-1.5 transition-colors hover:text-primary">
+              <Heart className="h-3.5 w-3.5" />
+              Favoritos
+              {favorites.length > 0 && <span className="font-semibold text-primary">({favorites.length})</span>}
+            </Link>
+            <button
+              type="button"
+              onClick={() => setCartOpen(true)}
+              className="flex items-center gap-1.5 transition-colors hover:text-primary"
+            >
+              <ShoppingBag className="h-3.5 w-3.5" />
+              Carrinho
+              {cartCount > 0 && <span className="font-semibold text-primary">({cartCount})</span>}
+            </button>
+            <Link to="/admin" className="flex items-center gap-1.5 transition-colors hover:text-primary">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Admin
+            </Link>
+          </div>
+        </div>
+      </div>
 
-          <form onSubmit={onSearch} className="relative min-w-0 flex-1">
-            <div className="flex items-center gap-2 rounded-full bg-background/95 px-3 py-2 shadow-lg backdrop-blur">
-              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+      {/* Logo grande, centralizada — linha própria, como na referência. */}
+      <div
+        className={cn(
+          "relative hidden justify-center bg-background py-4",
+          isHome ? "md:hidden" : "md:flex",
+        )}
+      >
+        <Link to="/" aria-label={`${siteConfig.name} — Home`}>
+          <img
+            src={siteConfig.logo}
+            alt={`${siteConfig.name} logo`}
+            width={1920}
+            height={512}
+            className="h-14 w-auto"
+          />
+        </Link>
+      </div>
+
+      {/* Categorias + busca lado a lado — linha inferior do header no desktop. */}
+      <div
+        className={cn(
+          "relative hidden border-t border-border bg-background",
+          isHome ? "md:hidden" : "md:block",
+        )}
+      >
+        <div className="mx-auto flex max-w-7xl items-center gap-8 px-4 py-3 sm:px-6">
+          <nav className="flex items-center gap-7 overflow-x-auto">
+            <Link
+              to="/novidades"
+              className="whitespace-nowrap text-sm font-bold uppercase tracking-wide text-primary transition-colors hover:opacity-80"
+            >
+              Novidades
+            </Link>
+            {categoryTabs.map((c) => (
+              <Link
+                key={c.slug}
+                to="/catalogo"
+                search={{ categoria: c.slug }}
+                className="whitespace-nowrap text-sm font-bold uppercase tracking-wide text-foreground transition-colors hover:text-primary"
+              >
+                {c.label}
+              </Link>
+            ))}
+            {extraLinks.map((l) => (
+              <Link
+                key={l.to}
+                to={l.to}
+                className="whitespace-nowrap text-sm font-bold uppercase tracking-wide text-foreground transition-colors hover:text-primary"
+                activeProps={{ className: "text-primary" }}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+
+          <form onSubmit={onSearch} className="relative ml-auto w-full max-w-xs">
+            <div className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2.5">
               <input
                 value={term}
                 onChange={(e) => setTerm(e.target.value)}
@@ -276,21 +241,44 @@ export function Header() {
                 placeholder="O que você procura?"
                 aria-label="Buscar produtos"
                 autoComplete="off"
-                className="w-full min-w-0 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
+              <button type="submit" aria-label="Buscar">
+                <Search className="h-4 w-4 text-muted-foreground transition-colors hover:text-primary" />
+              </button>
             </div>
             <SuggestionList />
           </form>
+        </div>
+      </div>
 
-          <Button
-            asChild
-            variant="ghost"
-            size="icon"
-            aria-label="Favoritos"
-            className={cn("shrink-0", overlay && "text-white hover:bg-white/15 hover:text-white")}
-          >
+      {/* MOBILE — hambúrguer, logo central e ícones numa única linha, com a
+          busca em linha própria logo abaixo, igual à referência. */}
+      <div className="relative flex items-center gap-2 bg-background px-4 py-2.5 md:hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Abrir menu"
+          className="shrink-0"
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+
+        <Link to="/" aria-label={`${siteConfig.name} — Home`} className="mx-auto shrink-0">
+          <img
+            src={siteConfig.logo}
+            alt={`${siteConfig.name} logo`}
+            width={1920}
+            height={512}
+            className="h-8 w-auto"
+          />
+        </Link>
+
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <Button asChild variant="ghost" size="icon" aria-label="Favoritos">
             <Link to="/favoritos" className="relative">
-              <Heart className="h-5 w-5" />
+              <User className="h-5 w-5" />
               {favorites.length > 0 && (
                 <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
                   {favorites.length}
@@ -302,7 +290,7 @@ export function Header() {
             variant="ghost"
             size="icon"
             aria-label="Carrinho"
-            className={cn("relative shrink-0", overlay && "text-white hover:bg-white/15 hover:text-white")}
+            className="relative"
             onClick={() => setCartOpen(true)}
           >
             <ShoppingBag className="h-5 w-5" />
@@ -313,11 +301,25 @@ export function Header() {
             )}
           </Button>
         </div>
+      </div>
 
-        {/* Logo pequena, centralizada abaixo da barra de busca */}
-        <div className={cn("flex justify-center py-2", !overlay && "border-t border-border")}>
-          <Logo className="h-7 w-auto drop-shadow" />
-        </div>
+      <div className="relative bg-background px-4 pb-3 md:hidden">
+        <form onSubmit={onSearch} className="relative">
+          <div className="flex items-center gap-2 rounded-full bg-secondary px-3 py-2">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <input
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              onFocus={() => setSuggestOpen(true)}
+              onBlur={() => setTimeout(() => setSuggestOpen(false), 100)}
+              placeholder="O que você procura?"
+              aria-label="Buscar produtos"
+              autoComplete="off"
+              className="w-full min-w-0 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            />
+          </div>
+          <SuggestionList />
+        </form>
       </div>
 
       {open && (
