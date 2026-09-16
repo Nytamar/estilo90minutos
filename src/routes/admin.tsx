@@ -77,22 +77,22 @@ function AdminLayout() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row">
-      <aside className="lg:w-56">
-        <nav className="flex gap-2 overflow-x-auto lg:flex-col">
+      <aside className="lg:w-60">
+        <nav className="flex gap-2 overflow-x-auto rounded-2xl bg-white/[0.03] p-2 lg:flex-col lg:gap-1">
           {nav.map((n) => (
             <Link
               key={n.to}
               to={n.to}
               activeOptions={{ exact: n.exact }}
-              className="flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
-              activeProps={{ className: "bg-accent text-primary" }}
+              className="flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
+              activeProps={{ className: "bg-primary text-primary-foreground hover:text-primary-foreground" }}
             >
               <n.icon className="h-4 w-4" /> {n.label}
             </Link>
           ))}
           <button
             onClick={() => void supabase.auth.signOut()}
-            className="flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm text-muted-foreground hover:text-destructive"
+            className="flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm text-muted-foreground hover:text-destructive"
           >
             <LogOut className="h-4 w-4" /> Sair
           </button>
