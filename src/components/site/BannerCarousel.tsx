@@ -39,13 +39,13 @@ function OverlayNav() {
   }
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 hidden items-center justify-between gap-4 px-6 pt-5 md:flex">
-      <div className="flex items-center gap-4">
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 hidden justify-center px-6 pt-16 sm:pt-20 lg:pt-24 md:flex">
+      <div className="flex w-full max-w-5xl items-center justify-between gap-6">
         <Link to="/" aria-label={`${siteConfig.name} — Home`} className="pointer-events-auto shrink-0">
           <img src={siteConfig.logo} alt={`${siteConfig.name} logo`} className="h-10 w-auto drop-shadow" />
         </Link>
 
-        <nav className="pointer-events-auto flex items-center gap-6 rounded-full bg-background/95 px-6 py-3 shadow-lg backdrop-blur">
+        <nav className="pointer-events-auto flex items-center gap-6 rounded-full border border-white/25 bg-white/15 px-6 py-3 shadow-lg backdrop-blur-xl">
           <Link
             to="/novidades"
             className="whitespace-nowrap text-xs font-bold uppercase tracking-wide text-primary transition-colors hover:opacity-80"
@@ -57,7 +57,7 @@ function OverlayNav() {
               key={c.slug}
               to="/catalogo"
               search={{ categoria: c.slug }}
-              className="whitespace-nowrap text-xs font-bold uppercase tracking-wide text-foreground transition-colors hover:text-primary"
+              className="whitespace-nowrap text-xs font-bold uppercase tracking-wide text-white transition-colors hover:text-primary"
             >
               {c.label}
             </Link>
@@ -66,69 +66,69 @@ function OverlayNav() {
             <Link
               key={l.to}
               to={l.to}
-              className="whitespace-nowrap text-xs font-bold uppercase tracking-wide text-foreground transition-colors hover:text-primary"
+              className="whitespace-nowrap text-xs font-bold uppercase tracking-wide text-white transition-colors hover:text-primary"
             >
               {l.label}
             </Link>
           ))}
         </nav>
+
+        <form
+          onSubmit={onSearch}
+          className="pointer-events-auto flex items-center gap-3 rounded-full border border-white/25 bg-white/15 px-4 py-2.5 shadow-lg backdrop-blur-xl"
+        >
+          <a
+            href={siteConfig.instagram}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Instagram"
+            className="text-white transition-colors hover:text-primary"
+          >
+            <Instagram className="h-4 w-4" />
+          </a>
+          <Link
+            to="/favoritos"
+            aria-label="Favoritos"
+            className="relative text-white transition-colors hover:text-primary"
+          >
+            <Heart className="h-4 w-4" />
+            {favorites.length > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-primary px-0.5 text-[9px] font-bold text-primary-foreground">
+                {favorites.length}
+              </span>
+            )}
+          </Link>
+          <button
+            type="button"
+            aria-label="Carrinho"
+            className="relative text-white transition-colors hover:text-primary"
+          >
+            <ShoppingBag className="h-4 w-4" />
+            {cartCount > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-primary px-0.5 text-[9px] font-bold text-primary-foreground">
+                {cartCount}
+              </span>
+            )}
+          </button>
+          <Link to="/admin" aria-label="Admin" className="text-white transition-colors hover:text-primary">
+            <ShieldCheck className="h-4 w-4" />
+          </Link>
+
+          <span className="h-4 w-px bg-white/30" aria-hidden />
+
+          <input
+            value={term}
+            onChange={(e) => setTerm(e.target.value)}
+            placeholder="O que você procura?"
+            aria-label="Buscar produtos"
+            autoComplete="off"
+            className="w-36 bg-transparent text-sm text-white outline-none placeholder:text-white/70 lg:w-48"
+          />
+          <button type="submit" aria-label="Buscar">
+            <Search className="h-4 w-4 text-white/80 transition-colors hover:text-primary" />
+          </button>
+        </form>
       </div>
-
-      <form
-        onSubmit={onSearch}
-        className="pointer-events-auto flex items-center gap-3 rounded-full bg-background/95 px-4 py-2.5 shadow-lg backdrop-blur"
-      >
-        <a
-          href={siteConfig.instagram}
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Instagram"
-          className="text-foreground transition-colors hover:text-primary"
-        >
-          <Instagram className="h-4 w-4" />
-        </a>
-        <Link
-          to="/favoritos"
-          aria-label="Favoritos"
-          className="relative text-foreground transition-colors hover:text-primary"
-        >
-          <Heart className="h-4 w-4" />
-          {favorites.length > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-primary px-0.5 text-[9px] font-bold text-primary-foreground">
-              {favorites.length}
-            </span>
-          )}
-        </Link>
-        <button
-          type="button"
-          aria-label="Carrinho"
-          className="relative text-foreground transition-colors hover:text-primary"
-        >
-          <ShoppingBag className="h-4 w-4" />
-          {cartCount > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-primary px-0.5 text-[9px] font-bold text-primary-foreground">
-              {cartCount}
-            </span>
-          )}
-        </button>
-        <Link to="/admin" aria-label="Admin" className="text-foreground transition-colors hover:text-primary">
-          <ShieldCheck className="h-4 w-4" />
-        </Link>
-
-        <span className="h-4 w-px bg-border" aria-hidden />
-
-        <input
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          placeholder="O que você procura?"
-          aria-label="Buscar produtos"
-          autoComplete="off"
-          className="w-40 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground lg:w-56"
-        />
-        <button type="submit" aria-label="Buscar">
-          <Search className="h-4 w-4 text-muted-foreground transition-colors hover:text-primary" />
-        </button>
-      </form>
     </div>
   );
 }
@@ -244,7 +244,7 @@ function BannerSlide({
         fetchpriority={priority ? "high" : "low"}
         className={cn(
           "block w-full object-cover",
-          tall ? "h-[420px] sm:h-[520px] md:h-[600px] lg:h-[680px]" : "h-[220px] sm:h-auto",
+          tall ? "h-[460px] sm:h-[570px] md:h-[660px] lg:h-[750px]" : "h-[220px] sm:h-auto",
         )}
       />
     </picture>
