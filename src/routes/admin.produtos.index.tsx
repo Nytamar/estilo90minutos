@@ -116,9 +116,15 @@ function AdminProdutos() {
     URL.revokeObjectURL(url);
   }
 
-  const list = products.filter((p) =>
-    `${p.name} ${p.code}`.toLowerCase().includes(filter.toLowerCase()),
-  );
+  const list = products
+    .filter((p) => `${p.name} ${p.code}`.toLowerCase().includes(filter.toLowerCase()))
+    .sort((a, b) => {
+      // Maior número de código primeiro — CAM-100, CAM-99, CAM-98...
+      const na = parseInt(String(a.code).replace(/\D/g, ""), 10) || 0;
+      const nb = parseInt(String(b.code).replace(/\D/g, ""), 10) || 0;
+      if (nb !== na) return nb - na;
+      return String(b.code).localeCompare(String(a.code));
+    });
 
   return (
     <div className="space-y-6">
