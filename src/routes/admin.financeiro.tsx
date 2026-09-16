@@ -194,7 +194,7 @@ function ChangePinForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="surface-card grid gap-4 rounded-xl p-5 sm:grid-cols-[1fr_1fr_auto_auto]">
+    <form onSubmit={handleSubmit} className="surface-card grid gap-4 rounded-2xl p-5 sm:grid-cols-[1fr_1fr_auto_auto]">
       <div>
         <Label htmlFor="new-pin">Novo PIN</Label>
         <Input
@@ -345,46 +345,55 @@ function FinanceiroDashboard({
 
       {/* Cards: faturamento / custo / lucro, separados automaticamente */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="surface-card rounded-xl p-5">
-          <p className="text-xs text-muted-foreground">Faturamento (30 dias)</p>
-          <p className="mt-1 font-display text-2xl">{formatPrice(totals.revenue)}</p>
-          <p className="text-xs text-muted-foreground">Valor total que entrou</p>
+        <div className="surface-card flex items-center justify-between rounded-2xl p-5">
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">Faturamento (30 dias)</p>
+            <p className="mt-1 font-display text-2xl">{formatPrice(totals.revenue)}</p>
+            <p className="text-xs text-muted-foreground">Valor total que entrou</p>
+          </div>
+          <span className="h-8 w-2 shrink-0 rounded-full bg-violet-400" />
         </div>
-        <div className="surface-card rounded-xl p-5">
-          <p className="text-xs text-muted-foreground">Custo das peças</p>
-          <p className="mt-1 font-display text-2xl text-warning">{formatPrice(totals.cost)}</p>
-          <p className="text-xs text-muted-foreground">Reposição / fornecedor</p>
+        <div className="surface-card flex items-center justify-between rounded-2xl p-5">
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">Custo das peças</p>
+            <p className="mt-1 font-display text-2xl text-warning">{formatPrice(totals.cost)}</p>
+            <p className="text-xs text-muted-foreground">Reposição / fornecedor</p>
+          </div>
+          <span className="h-8 w-2 shrink-0 rounded-full bg-rose-400" />
         </div>
-        <div className="surface-card rounded-xl p-5">
-          <p className="text-xs text-muted-foreground">Lucro líquido</p>
-          <p className="mt-1 font-display text-2xl text-primary">{formatPrice(totals.profit)}</p>
-          <p className="text-xs text-muted-foreground">
-            {totals.revenue > 0 ? `Margem de ${((totals.profit / totals.revenue) * 100).toFixed(1)}%` : "—"}
-          </p>
+        <div className="surface-card flex items-center justify-between rounded-2xl p-5">
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">Lucro líquido</p>
+            <p className="mt-1 font-display text-2xl text-primary">{formatPrice(totals.profit)}</p>
+            <p className="text-xs text-muted-foreground">
+              {totals.revenue > 0 ? `Margem de ${((totals.profit / totals.revenue) * 100).toFixed(1)}%` : "—"}
+            </p>
+          </div>
+          <span className="h-8 w-2 shrink-0 rounded-full bg-emerald-400" />
         </div>
       </div>
 
       {/* A receber */}
       {pendingSales.length > 0 && (
-        <div className="surface-card rounded-xl border border-warning/30 p-5">
+        <div className="surface-card rounded-2xl border border-amber-300/50 bg-amber-50 p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-xl">A receber</h2>
-            <span className="text-warning">
+            <h2 className="font-display text-xl text-amber-900">A receber</h2>
+            <span className="font-semibold text-amber-700">
               {formatPrice(pendingSales.reduce((sum, s) => sum + Number(s.pending_amount), 0))}
             </span>
           </div>
           <ul className="space-y-2 text-sm">
             {pendingSales.map((s) => (
-              <li key={s.id} className="flex items-center justify-between gap-2 border-b border-border/50 py-2">
+              <li key={s.id} className="flex items-center justify-between gap-2 border-b border-amber-200/60 py-2">
                 <div className="min-w-0">
-                  <p>{new Date(s.sold_at).toLocaleDateString("pt-BR")}</p>
+                  <p className="text-amber-900">{new Date(s.sold_at).toLocaleDateString("pt-BR")}</p>
                   {s.customer_name && (
-                    <p className="text-xs text-muted-foreground">{s.customer_name}</p>
+                    <p className="text-xs text-amber-700/80">{s.customer_name}</p>
                   )}
-                  {s.notes && <p className="text-xs italic text-muted-foreground">{s.notes}</p>}
+                  {s.notes && <p className="text-xs italic text-amber-700/70">{s.notes}</p>}
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
-                  <span className="text-warning">{formatPrice(s.pending_amount)}</span>
+                  <span className="font-medium text-amber-700">{formatPrice(s.pending_amount)}</span>
                   <Button size="sm" variant="outline" onClick={() => markReceived(s.id)}>
                     Marcar como recebido
                   </Button>
@@ -399,27 +408,34 @@ function FinanceiroDashboard({
       <RegisterSaleForm products={products} onSubmit={submitSale} saving={saving} />
 
       {/* Gráfico diário */}
-      <div className="surface-card rounded-xl p-5">
+      <div className="surface-card rounded-2xl p-5">
         <h2 className="mb-4 font-display text-xl">Faturamento x custo x lucro</h2>
         <div className="h-72 w-full">
           {!loadingDaily && (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.33 0.045 259)" />
-                <XAxis dataKey="dia" stroke="oklch(0.72 0.022 255)" fontSize={12} />
-                <YAxis stroke="oklch(0.72 0.022 255)" fontSize={12} tickFormatter={(v) => formatPrice(v)} width={90} />
+                <CartesianGrid vertical={false} stroke="var(--color-border)" />
+                <XAxis dataKey="dia" stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis
+                  stroke="var(--color-muted-foreground)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v) => formatPrice(v)}
+                  width={90}
+                />
                 <Tooltip
                   formatter={(v: number) => formatPrice(v)}
                   contentStyle={{
-                    background: "oklch(0.22 0.047 259)",
-                    border: "1px solid oklch(0.33 0.045 259)",
-                    borderRadius: 8,
+                    background: "var(--color-card)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: 12,
                   }}
                 />
                 <Legend />
-                <Bar dataKey="Faturamento" fill="oklch(0.62 0.13 255)" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="Custo" fill="oklch(0.72 0.15 55)" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="Lucro" fill="oklch(0.79 0.132 145)" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Faturamento" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Custo" fill="#fb7185" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Lucro" fill="#34d399" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -427,7 +443,7 @@ function FinanceiroDashboard({
       </div>
 
       {/* Faturamento por mês */}
-      <div className="surface-card rounded-xl p-5">
+      <div className="surface-card rounded-2xl p-5">
         <h2 className="mb-3 font-display text-xl">Faturamento por mês</h2>
         <div className="space-y-2 text-sm">
           {monthly.map((m) => {
@@ -453,21 +469,33 @@ function FinanceiroDashboard({
       </div>
 
       {/* Lucro por produto */}
-      <div className="surface-card rounded-xl p-5">
+      <div className="surface-card rounded-2xl p-5">
         <h2 className="mb-3 font-display text-xl">Lucro por produto</h2>
-        <ul className="space-y-2 text-sm">
+        <ul className="space-y-3 text-sm">
           {!loadingProducts &&
-            byProduct.map((p) => (
-              <li key={p.product_id} className="flex items-center justify-between gap-2 border-b border-border/50 py-2">
-                <div className="min-w-0">
-                  <p className="truncate">{p.product_name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {p.units_sold} un. · margem {p.margin_pct ?? "—"}%
-                  </p>
-                </div>
-                <span className="shrink-0 text-primary">{formatPrice(Number(p.profit))}</span>
-              </li>
-            ))}
+            byProduct.map((p) => {
+              const maxProfit = Math.max(1, ...byProduct.map((x) => Number(x.profit) || 0));
+              const ratio = Math.max(0, Number(p.profit) || 0) / maxProfit;
+              return (
+                <li key={p.product_id}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate">{p.product_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {p.units_sold} un. · margem {p.margin_pct ?? "—"}%
+                      </p>
+                    </div>
+                    <span className="shrink-0 font-semibold text-primary">{formatPrice(Number(p.profit))}</span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 w-full rounded-full bg-muted">
+                    <div
+                      className="h-1.5 rounded-full bg-emerald-400"
+                      style={{ width: `${Math.max(4, ratio * 100)}%` }}
+                    />
+                  </div>
+                </li>
+              );
+            })}
           {!loadingProducts && byProduct.length === 0 && (
             <li className="text-muted-foreground">Nenhuma venda lançada ainda.</li>
           )}
@@ -475,12 +503,15 @@ function FinanceiroDashboard({
       </div>
 
       {/* Vendas recentes */}
-      <div className="surface-card rounded-xl p-5">
+      <div className="surface-card rounded-2xl p-5">
         <h2 className="mb-3 font-display text-xl">Últimas vendas</h2>
         <ul className="space-y-2 text-sm">
           {recentSales.map((s) => (
-            <li key={s.id} className="flex items-center justify-between gap-2 border-b border-border/50 py-2">
-              <div className="min-w-0">
+            <li key={s.id} className="flex items-center gap-3 border-b border-border/50 py-2">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-violet-100 text-xs font-bold text-violet-600">
+                {(s.customer_name || "?").slice(0, 2).toUpperCase()}
+              </span>
+              <div className="min-w-0 flex-1">
                 <p>{new Date(s.sold_at).toLocaleString("pt-BR")}</p>
                 <p className="text-xs text-muted-foreground">
                   {s.quantity}x · custo {formatPrice(s.unit_cost_price)} · venda {formatPrice(s.unit_sale_price)}
@@ -499,7 +530,7 @@ function FinanceiroDashboard({
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-3">
-                <span className="text-primary">{formatPrice(s.total_profit_amount)}</span>
+                <span className="font-semibold text-primary">{formatPrice(s.total_profit_amount)}</span>
                 <button
                   type="button"
                   aria-label="Editar venda"
@@ -819,7 +850,7 @@ function RegisterSaleForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="surface-card space-y-4 rounded-xl p-5">
+    <form onSubmit={handleSubmit} className="surface-card space-y-4 rounded-2xl p-5">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-2">
           <Label htmlFor="sale-product">Produto vendido</Label>
