@@ -86,7 +86,10 @@ function AdminLayout() {
                 to={n.to}
                 activeOptions={{ exact: n.exact }}
                 className="flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
-                activeProps={{ className: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground" }}
+                activeProps={{
+                  className:
+                    "!bg-primary !text-primary-foreground [&_svg]:!text-primary-foreground",
+                }}
               >
                 <n.icon className="h-4 w-4" /> {n.label}
               </Link>
