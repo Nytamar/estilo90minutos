@@ -76,30 +76,32 @@ function AdminLayout() {
   }
 
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row">
-      <aside className="lg:w-60">
-        <nav className="flex gap-2 overflow-x-auto rounded-2xl bg-white/[0.03] p-2 lg:flex-col lg:gap-1">
-          {nav.map((n) => (
-            <Link
-              key={n.to}
-              to={n.to}
-              activeOptions={{ exact: n.exact }}
-              className="flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
-              activeProps={{ className: "bg-primary text-primary-foreground hover:text-primary-foreground" }}
+    <div className="min-h-[calc(100vh-4rem)] bg-slate-100 px-3 py-4 sm:px-4 sm:py-6 lg:py-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 rounded-3xl bg-slate-50 p-3 shadow-sm sm:gap-6 sm:p-5 lg:flex-row lg:p-6">
+        <aside className="lg:w-60">
+          <nav className="flex gap-2 overflow-x-auto rounded-2xl bg-white p-2 shadow-sm lg:flex-col lg:gap-1">
+            {nav.map((n) => (
+              <Link
+                key={n.to}
+                to={n.to}
+                activeOptions={{ exact: n.exact }}
+                className="flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                activeProps={{ className: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground" }}
+              >
+                <n.icon className="h-4 w-4" /> {n.label}
+              </Link>
+            ))}
+            <button
+              onClick={() => void supabase.auth.signOut()}
+              className="flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm text-slate-500 hover:text-destructive"
             >
-              <n.icon className="h-4 w-4" /> {n.label}
-            </Link>
-          ))}
-          <button
-            onClick={() => void supabase.auth.signOut()}
-            className="flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm text-muted-foreground hover:text-destructive"
-          >
-            <LogOut className="h-4 w-4" /> Sair
-          </button>
-        </nav>
-      </aside>
-      <div className="min-w-0 flex-1">
-        <Outlet />
+              <LogOut className="h-4 w-4" /> Sair
+            </button>
+          </nav>
+        </aside>
+        <div className="min-w-0 flex-1">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
