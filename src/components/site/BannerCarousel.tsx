@@ -40,12 +40,12 @@ function OverlayNav() {
 
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-20 hidden justify-center px-6 pt-16 sm:pt-20 lg:pt-24 md:flex">
-      <div className="flex w-full max-w-5xl items-center justify-between gap-6">
+      <div className="flex w-full max-w-6xl items-center justify-between gap-10">
         <Link to="/" aria-label={`${siteConfig.name} — Home`} className="pointer-events-auto shrink-0">
           <img src={siteConfig.logo} alt={`${siteConfig.name} logo`} className="h-10 w-auto drop-shadow" />
         </Link>
 
-        <nav className="pointer-events-auto flex items-center gap-6 rounded-full border border-white/25 bg-white/15 px-6 py-3 shadow-lg backdrop-blur-xl">
+        <nav className="pointer-events-auto flex items-center gap-6 rounded-full bg-white px-6 py-3 shadow-lg">
           <Link
             to="/novidades"
             className="whitespace-nowrap text-xs font-bold uppercase tracking-wide text-primary transition-colors hover:opacity-80"
@@ -57,7 +57,7 @@ function OverlayNav() {
               key={c.slug}
               to="/catalogo"
               search={{ categoria: c.slug }}
-              className="whitespace-nowrap text-xs font-bold uppercase tracking-wide text-white transition-colors hover:text-primary"
+              className="whitespace-nowrap text-xs font-bold uppercase tracking-wide text-[#10325B] transition-colors hover:text-primary"
             >
               {c.label}
             </Link>
@@ -66,7 +66,7 @@ function OverlayNav() {
             <Link
               key={l.to}
               to={l.to}
-              className="whitespace-nowrap text-xs font-bold uppercase tracking-wide text-white transition-colors hover:text-primary"
+              className="whitespace-nowrap text-xs font-bold uppercase tracking-wide text-[#10325B] transition-colors hover:text-primary"
             >
               {l.label}
             </Link>
@@ -75,21 +75,21 @@ function OverlayNav() {
 
         <form
           onSubmit={onSearch}
-          className="pointer-events-auto flex items-center gap-3 rounded-full border border-white/25 bg-white/15 px-4 py-2.5 shadow-lg backdrop-blur-xl"
+          className="pointer-events-auto ml-4 flex items-center gap-3 rounded-full bg-white px-4 py-2.5 shadow-lg"
         >
           <a
             href={siteConfig.instagram}
             target="_blank"
             rel="noreferrer"
             aria-label="Instagram"
-            className="text-white transition-colors hover:text-primary"
+            className="text-[#10325B] transition-colors hover:text-primary"
           >
             <Instagram className="h-4 w-4" />
           </a>
           <Link
             to="/favoritos"
             aria-label="Favoritos"
-            className="relative text-white transition-colors hover:text-primary"
+            className="relative text-[#10325B] transition-colors hover:text-primary"
           >
             <Heart className="h-4 w-4" />
             {favorites.length > 0 && (
@@ -101,7 +101,7 @@ function OverlayNav() {
           <button
             type="button"
             aria-label="Carrinho"
-            className="relative text-white transition-colors hover:text-primary"
+            className="relative text-[#10325B] transition-colors hover:text-primary"
           >
             <ShoppingBag className="h-4 w-4" />
             {cartCount > 0 && (
@@ -110,11 +110,11 @@ function OverlayNav() {
               </span>
             )}
           </button>
-          <Link to="/admin" aria-label="Admin" className="text-white transition-colors hover:text-primary">
+          <Link to="/admin" aria-label="Admin" className="text-[#10325B] transition-colors hover:text-primary">
             <ShieldCheck className="h-4 w-4" />
           </Link>
 
-          <span className="h-4 w-px bg-white/30" aria-hidden />
+          <span className="h-4 w-px bg-border" aria-hidden />
 
           <input
             value={term}
@@ -122,10 +122,10 @@ function OverlayNav() {
             placeholder="O que você procura?"
             aria-label="Buscar produtos"
             autoComplete="off"
-            className="w-36 bg-transparent text-sm text-white outline-none placeholder:text-white/70 lg:w-48"
+            className="w-36 bg-transparent text-sm text-[#10325B] outline-none placeholder:text-[#10325B]/60 lg:w-48"
           />
           <button type="submit" aria-label="Buscar">
-            <Search className="h-4 w-4 text-white/80 transition-colors hover:text-primary" />
+            <Search className="h-4 w-4 text-[#10325B]/70 transition-colors hover:text-primary" />
           </button>
         </form>
       </div>
