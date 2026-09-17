@@ -110,13 +110,22 @@ export function Header() {
 
       <div className="h-1 w-full bg-primary" />
 
-      {/* Barra única do desktop: busca + favoritos/conta/carrinho em cima,
-          logo + categorias embaixo — igual à referência (Netshoes-style),
-          ficando entre a faixa de novidades e o hero. Vale pra todas as
-          páginas, não só a home. */}
+      {/* Barra única do desktop, igual ao print da Centauro: logo + busca +
+          favoritos/conta/carrinho tudo numa linha só, e as categorias numa
+          segunda linha, sem logo repetida. Vale pra todas as páginas. */}
       <div className="relative hidden bg-background md:block">
         <div className="border-b border-border/70">
-          <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-2.5 sm:px-6">
+          <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3 sm:px-6">
+            <Link to="/" aria-label={`${siteConfig.name} — Home`} className="shrink-0">
+              <img
+                src={siteConfig.logo}
+                alt={`${siteConfig.name} logo`}
+                width={1920}
+                height={512}
+                className="h-10 w-auto"
+              />
+            </Link>
+
             <form onSubmit={onSearch} className="relative w-full max-w-2xl">
               <div className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2">
                 <input
@@ -165,17 +174,7 @@ export function Header() {
           </div>
         </div>
 
-        <div className="mx-auto flex max-w-7xl items-center gap-8 px-4 py-3 sm:px-6">
-          <Link to="/" aria-label={`${siteConfig.name} — Home`} className="shrink-0">
-            <img
-              src={siteConfig.logo}
-              alt={`${siteConfig.name} logo`}
-              width={1920}
-              height={512}
-              className="h-10 w-auto"
-            />
-          </Link>
-
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
           <nav className="flex items-center gap-7 overflow-x-auto">
             <Link
               to="/novidades"
