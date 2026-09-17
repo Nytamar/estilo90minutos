@@ -68,7 +68,7 @@ function Home() {
         {siteConfig.name} — Camisas de futebol nacionais, europeias, seleções e retrô
       </h1>
 
-      {banners.length > 0 && <BannerCarousel banners={banners} overlayNav fullBleed />}
+      {banners.length > 0 && <BannerCarousel banners={banners} fullBleed />}
 
       {/* Cards de novidades "grudados" na borda de baixo do hero, se
           sobrepondo a ele — por isso a margem negativa aqui em cima. */}
