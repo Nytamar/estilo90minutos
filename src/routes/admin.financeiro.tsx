@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { toast } from "sonner";
-import { Lock, LogOut, ShieldCheck, Trash2, Pencil } from "lucide-react";
+import { Lock, LogOut, ShieldCheck, Trash2, Pencil, Plus } from "lucide-react";
 import { useFinancialPin } from "@/hooks/useFinancialPin";
 import { productsQuery } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
@@ -777,6 +777,36 @@ function DeleteSaleButton({
   );
 }
 
+// Um "item" de camisa dentro do lançamento — cada um vira, na hora de
+// enviar, uma chamada separada a registerSale (uma linha na tabela
+// "sales"). Isso permite lançar 2, 3 ou mais camisas diferentes numa
+// venda só, sem perder a data/anotação compartilhada entre elas.
+type SaleItemDraft = {
+  key: string;
+  productId: string;
+  quantity: string;
+  costPrice: string;
+  salePrice: string;
+  customizationFee: string;
+  customizationCost: string;
+  pendingAmount: string;
+};
+
+let itemKeySeq = 0;
+function emptySaleItem(): SaleItemDraft {
+  itemKeySeq += 1;
+  return {
+    key: `item-${itemKeySeq}`,
+    productId: "",
+    quantity: "1",
+    costPrice: "",
+    salePrice: "",
+    customizationFee: "0",
+    customizationCost: "0",
+    pendingAmount: "",
+  };
+}
+
 function RegisterSaleForm({
   products,
   onSubmit,
@@ -786,163 +816,225 @@ function RegisterSaleForm({
   onSubmit: (input: RegisterSaleInput) => Promise<unknown>;
   saving: boolean;
 }) {
-  const [productId, setProductId] = useState("");
-  const [quantity, setQuantity] = useState("1");
-  const [costPrice, setCostPrice] = useState("");
-  const [salePrice, setSalePrice] = useState("");
-  const [customizationFee, setCustomizationFee] = useState("0");
-  const [customizationCost, setCustomizationCost] = useState("0");
-  const [pendingAmount, setPendingAmount] = useState("");
+  const [items, setItems] = useState<SaleItemDraft[]>([emptySaleItem()]);
   const [soldAt, setSoldAt] = useState("");
   const [notes, setNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  function updateItem(key: string, patch: Partial<SaleItemDraft>) {
+    setItems((prev) => prev.map((it) => (it.key === key ? { ...it, ...patch } : it)));
+  }
+
+  function addItem() {
+    setItems((prev) => [...prev, emptySaleItem()]);
+  }
+
+  function removeItem(key: string) {
+    setItems((prev) => (prev.length > 1 ? prev.filter((it) => it.key !== key) : prev));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!productId) {
-      toast.error("Selecione o produto");
-      return;
-    }
-    const qty = Number(quantity);
-    if (!qty || qty <= 0) {
-      toast.error("Quantidade inválida");
-      return;
-    }
-    const fee = Number(customizationFee || 0);
-    const custoPersonalizacao = Number(customizationCost || 0);
-    if (fee < 0 || custoPersonalizacao < 0) {
-      toast.error("Os valores de personalização não podem ser negativos");
-      return;
-    }
-    if (costPrice && Number(costPrice) < 0) {
-      toast.error("O preço de custo não pode ser negativo");
-      return;
-    }
-    if (salePrice && Number(salePrice) < 0) {
-      toast.error("O preço de venda não pode ser negativo");
-      return;
-    }
-    const pending = Number(pendingAmount || 0);
-    if (pending < 0) {
-      toast.error("O valor pendente não pode ser negativo");
-      return;
+
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      const label = items.length > 1 ? ` (camisa ${i + 1})` : "";
+      if (!it.productId) {
+        toast.error(`Selecione o produto${label}`);
+        return;
+      }
+      const qty = Number(it.quantity);
+      if (!qty || qty <= 0) {
+        toast.error(`Quantidade inválida${label}`);
+        return;
+      }
+      const fee = Number(it.customizationFee || 0);
+      const custoPersonalizacao = Number(it.customizationCost || 0);
+      if (fee < 0 || custoPersonalizacao < 0) {
+        toast.error(`Os valores de personalização não podem ser negativos${label}`);
+        return;
+      }
+      if (it.costPrice && Number(it.costPrice) < 0) {
+        toast.error(`O preço de custo não pode ser negativo${label}`);
+        return;
+      }
+      if (it.salePrice && Number(it.salePrice) < 0) {
+        toast.error(`O preço de venda não pode ser negativo${label}`);
+        return;
+      }
+      const pending = Number(it.pendingAmount || 0);
+      if (pending < 0) {
+        toast.error(`O valor pendente não pode ser negativo${label}`);
+        return;
+      }
     }
 
-    await onSubmit({
-      productId,
-      quantity: qty,
-      customizationFee: fee,
-      customizationCost: custoPersonalizacao,
-      unitCostPrice: costPrice ? Number(costPrice) : undefined,
-      unitSalePrice: salePrice ? Number(salePrice) : undefined,
-      pendingAmount: pending,
-      soldAt: soldAt ? new Date(soldAt).toISOString() : undefined,
-      notes: notes.trim() || undefined,
-    });
-
-    setQuantity("1");
-    setCostPrice("");
-    setSalePrice("");
-    setCustomizationFee("0");
-    setCustomizationCost("0");
-    setPendingAmount("");
-    setSoldAt("");
-    setNotes("");
+    setSubmitting(true);
+    let savedCount = 0;
+    try {
+      for (const it of items) {
+        await onSubmit({
+          productId: it.productId,
+          quantity: Number(it.quantity),
+          customizationFee: Number(it.customizationFee || 0),
+          customizationCost: Number(it.customizationCost || 0),
+          unitCostPrice: it.costPrice ? Number(it.costPrice) : undefined,
+          unitSalePrice: it.salePrice ? Number(it.salePrice) : undefined,
+          pendingAmount: Number(it.pendingAmount || 0),
+          soldAt: soldAt ? new Date(soldAt).toISOString() : undefined,
+          notes: notes.trim() || undefined,
+        });
+        savedCount += 1;
+      }
+      setItems([emptySaleItem()]);
+      setSoldAt("");
+      setNotes("");
+    } catch {
+      // As camisas já enviadas com sucesso ficaram salvas no banco — tira
+      // elas da lista pra não arriscar lançar de novo, e deixa o resto
+      // (incluindo a que falhou) pra corrigir e reenviar. O toast de erro
+      // específico já é disparado pelo onSubmit (mutation) lá no dashboard.
+      if (savedCount > 0) {
+        setItems((prev) => prev.slice(savedCount));
+        toast.error(
+          `${savedCount} de ${items.length} camisa(s) já foram lançadas antes do erro — ajuste e envie o restante.`,
+        );
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
+
+  const busy = saving || submitting;
 
   return (
     <form onSubmit={handleSubmit} className="surface-card space-y-4 rounded-2xl p-5">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="lg:col-span-2">
-          <Label htmlFor="sale-product">Produto vendido</Label>
-          <ProductCombobox
-            id="sale-product"
-            products={products}
-            value={productId}
-            onChange={setProductId}
-          />
-        </div>
-        <div>
-          <Label htmlFor="sale-qty">Quantidade</Label>
-          <Input
-            id="sale-qty"
-            type="number"
-            min={1}
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-          />
-        </div>
-        <div>
-          <Label htmlFor="sale-sale-price">Preço de venda (un.)</Label>
-          <Input
-            id="sale-sale-price"
-            type="number"
-            min={0}
-            step="0.01"
-            placeholder="Valor do site"
-            value={salePrice}
-            onChange={(e) => setSalePrice(e.target.value)}
-          />
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Vendeu por outro valor? Preencha aqui. Em branco, usa o preço do produto.
-          </p>
-        </div>
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-xl">Lançar venda</h2>
+        {items.length > 1 && (
+          <span className="text-xs text-muted-foreground">{items.length} camisas nesta venda</span>
+        )}
+      </div>
 
-        <div>
-          <Label htmlFor="sale-cost-price">Preço de custo (un.)</Label>
-          <Input
-            id="sale-cost-price"
-            type="number"
-            min={0}
-            step="0.01"
-            placeholder="Do cadastro"
-            value={costPrice}
-            onChange={(e) => setCostPrice(e.target.value)}
-          />
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Produto sem custo cadastrado? Informe aqui.
-          </p>
-        </div>
-        <div>
-          <Label htmlFor="sale-customization">Acréscimo personalização</Label>
-          <Input
-            id="sale-customization"
-            type="number"
-            min={0}
-            step="0.01"
-            placeholder="0,00"
-            value={customizationFee}
-            onChange={(e) => setCustomizationFee(e.target.value)}
-          />
-          <p className="mt-1 text-[11px] text-muted-foreground">Quanto você cobrou a mais.</p>
-        </div>
-        <div>
-          <Label htmlFor="sale-customization-cost">Custo da personalização</Label>
-          <Input
-            id="sale-customization-cost"
-            type="number"
-            min={0}
-            step="0.01"
-            placeholder="0,00"
-            value={customizationCost}
-            onChange={(e) => setCustomizationCost(e.target.value)}
-          />
-          <p className="mt-1 text-[11px] text-muted-foreground">Quanto isso custou pra você.</p>
-        </div>
-        <div>
-          <Label htmlFor="sale-pending">Valor pendente (se parcelado)</Label>
-          <Input
-            id="sale-pending"
-            type="number"
-            min={0}
-            step="0.01"
-            placeholder="0,00"
-            value={pendingAmount}
-            onChange={(e) => setPendingAmount(e.target.value)}
-          />
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Deixe em branco se já recebeu tudo.
-          </p>
-        </div>
+      <div className="space-y-4">
+        {items.map((it, i) => (
+          <div key={it.key} className="rounded-xl border border-border p-4">
+            {items.length > 1 && (
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground">Camisa {i + 1}</span>
+                <button
+                  type="button"
+                  onClick={() => removeItem(it.key)}
+                  className="text-muted-foreground hover:text-destructive"
+                  aria-label={`Remover camisa ${i + 1}`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="lg:col-span-2">
+                <Label htmlFor={`sale-product-${it.key}`}>Produto vendido</Label>
+                <ProductCombobox
+                  id={`sale-product-${it.key}`}
+                  products={products}
+                  value={it.productId}
+                  onChange={(v) => updateItem(it.key, { productId: v })}
+                />
+              </div>
+              <div>
+                <Label htmlFor={`sale-qty-${it.key}`}>Quantidade</Label>
+                <Input
+                  id={`sale-qty-${it.key}`}
+                  type="number"
+                  min={1}
+                  value={it.quantity}
+                  onChange={(e) => updateItem(it.key, { quantity: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor={`sale-sale-price-${it.key}`}>Preço de venda (un.)</Label>
+                <Input
+                  id={`sale-sale-price-${it.key}`}
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder="Valor do site"
+                  value={it.salePrice}
+                  onChange={(e) => updateItem(it.key, { salePrice: e.target.value })}
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Vendeu por outro valor? Preencha aqui. Em branco, usa o preço do produto.
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor={`sale-cost-price-${it.key}`}>Preço de custo (un.)</Label>
+                <Input
+                  id={`sale-cost-price-${it.key}`}
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder="Do cadastro"
+                  value={it.costPrice}
+                  onChange={(e) => updateItem(it.key, { costPrice: e.target.value })}
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Produto sem custo cadastrado? Informe aqui.
+                </p>
+              </div>
+              <div>
+                <Label htmlFor={`sale-customization-${it.key}`}>Acréscimo personalização</Label>
+                <Input
+                  id={`sale-customization-${it.key}`}
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder="0,00"
+                  value={it.customizationFee}
+                  onChange={(e) => updateItem(it.key, { customizationFee: e.target.value })}
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">Quanto você cobrou a mais.</p>
+              </div>
+              <div>
+                <Label htmlFor={`sale-customization-cost-${it.key}`}>Custo da personalização</Label>
+                <Input
+                  id={`sale-customization-cost-${it.key}`}
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder="0,00"
+                  value={it.customizationCost}
+                  onChange={(e) => updateItem(it.key, { customizationCost: e.target.value })}
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">Quanto isso custou pra você.</p>
+              </div>
+              <div>
+                <Label htmlFor={`sale-pending-${it.key}`}>Valor pendente (se parcelado)</Label>
+                <Input
+                  id={`sale-pending-${it.key}`}
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder="0,00"
+                  value={it.pendingAmount}
+                  onChange={(e) => updateItem(it.key, { pendingAmount: e.target.value })}
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Deixe em branco se já recebeu tudo.
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Button type="button" variant="outline" onClick={addItem} className="gap-2">
+        <Plus className="h-4 w-4" />
+        Adicionar outra camisa
+      </Button>
+
+      <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="sale-date">Data da venda</Label>
           <Input
@@ -952,25 +1044,25 @@ function RegisterSaleForm({
             onChange={(e) => setSoldAt(e.target.value)}
           />
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Deixe em branco pra usar agora. Preencha pra lançar uma venda de outro dia/mês.
+            Deixe em branco pra usar agora. Preencha pra lançar uma venda de outro dia/mês. Vale pra
+            todas as camisas desta venda.
           </p>
+        </div>
+        <div>
+          <Label htmlFor="sale-notes">Anotação (opcional)</Label>
+          <textarea
+            id="sale-notes"
+            rows={2}
+            placeholder="Ex.: nome e número na camisa, forma de pagamento combinada, etc."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="border-input bg-background flex w-full rounded-md border px-3 py-2 text-sm"
+          />
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="sale-notes">Anotação (opcional)</Label>
-        <textarea
-          id="sale-notes"
-          rows={2}
-          placeholder="Ex.: nome e número na camisa, forma de pagamento combinada, etc."
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          className="border-input bg-background flex w-full rounded-md border px-3 py-2 text-sm"
-        />
-      </div>
-
-      <Button type="submit" disabled={saving}>
-        Lançar venda
+      <Button type="submit" disabled={busy}>
+        {items.length > 1 ? `Lançar ${items.length} vendas` : "Lançar venda"}
       </Button>
     </form>
   );
