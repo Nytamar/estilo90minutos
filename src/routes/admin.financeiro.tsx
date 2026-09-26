@@ -21,6 +21,7 @@ import {
   financialByProductQuery,
   financialMonthlyQuery,
   financialDailyQuery,
+  notifySale,
   pendingSalesQuery,
   recentSalesQuery,
   registerSale,
@@ -813,7 +814,7 @@ function RegisterSaleForm({
   saving,
 }: {
   products: { id: string; name: string; code: string }[];
-  onSubmit: (input: RegisterSaleInput) => Promise<unknown>;
+  onSubmit: (input: RegisterSaleInput) => Promise<Sale>;
   saving: boolean;
 }) {
   const [items, setItems] = useState<SaleItemDraft[]>([emptySaleItem()]);
@@ -871,9 +872,10 @@ function RegisterSaleForm({
 
     setSubmitting(true);
     let savedCount = 0;
+    const savedSales: Sale[] = [];
     try {
       for (const it of items) {
-        await onSubmit({
+        const sale = await onSubmit({
           productId: it.productId,
           quantity: Number(it.quantity),
           customizationFee: Number(it.customizationFee || 0),
@@ -884,8 +886,29 @@ function RegisterSaleForm({
           soldAt: soldAt ? new Date(soldAt).toISOString() : undefined,
           notes: notes.trim() || undefined,
         });
+        savedSales.push(sale);
         savedCount += 1;
       }
+
+      // Venda(s) salvas — dispara o aviso de WhatsApp pro dono e pro sócio.
+      // Não é aguardado nem bloqueia o reset do formulário: se o aviso
+      // falhar (CallMeBot fora do ar, secrets não configurados etc.), a
+      // venda já está salva de qualquer forma, então isso só fica registrado
+      // no console (ver notifySale em src/lib/finance.ts).
+      const productNameById = new Map(products.map((p) => [p.id, p.name]));
+      void notifySale({
+        items: savedSales.map((sale) => ({
+          productName: productNameById.get(sale.product_id) ?? "Produto",
+          quantity: sale.quantity,
+          totalSaleAmount: Number(sale.total_sale_amount),
+          totalProfitAmount: Number(sale.total_profit_amount),
+        })),
+        totalAmount: savedSales.reduce((sum, s) => sum + Number(s.total_sale_amount), 0),
+        totalProfit: savedSales.reduce((sum, s) => sum + Number(s.total_profit_amount), 0),
+        notes: notes.trim() || null,
+        soldAt: savedSales[0]?.sold_at ?? null,
+      });
+
       setItems([emptySaleItem()]);
       setSoldAt("");
       setNotes("");
