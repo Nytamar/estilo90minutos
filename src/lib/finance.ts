@@ -139,6 +139,30 @@ export async function deleteSale(id: string): Promise<void> {
   if (error) throw error;
 }
 
+export type NotifySalePayload = {
+  items: { productName: string; quantity: number; totalSaleAmount: number; totalProfitAmount: number }[];
+  totalAmount: number;
+  totalProfit: number;
+  customerName?: string | null;
+  notes?: string | null;
+  soldAt?: string | null;
+};
+
+// Dispara o aviso de WhatsApp (dono + sócio) via a Edge Function
+// "notify-sale". É "melhor esforço": se der erro (função não configurada,
+// CallMeBot fora do ar, etc.), só loga no console — nunca deve travar nem
+// mostrar erro pro lançamento da venda, que já foi salva com sucesso.
+export async function notifySale(payload: NotifySalePayload): Promise<void> {
+  try {
+    const { error } = await supabase.functions.invoke("notify-sale", { body: payload });
+    if (error) {
+      console.warn("Aviso de venda não pôde ser enviado:", error);
+    }
+  } catch (err) {
+    console.warn("Aviso de venda não pôde ser enviado:", err);
+  }
+}
+
 export async function fetchFinancialDaily(): Promise<FinancialDailyRow[]> {
   const { data, error } = await supabase
     .from("v_financial_daily")
