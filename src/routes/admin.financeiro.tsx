@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { Lock, LogOut, ShieldCheck, Trash2, Pencil, Plus } from "lucide-react";
 import { useFinancialPin } from "@/hooks/useFinancialPin";
-import { productsQuery } from "@/lib/catalog";
+import { productsQuery, effectivePrice, type Product } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 import {
   deleteSale,
@@ -878,7 +878,6 @@ type SaleItemDraft = {
   salePrice: string;
   customizationFee: string;
   customizationCost: string;
-  pendingAmount: string;
   notes: string;
 };
 
@@ -893,9 +892,39 @@ function emptySaleItem(): SaleItemDraft {
     salePrice: "",
     customizationFee: "0",
     customizationCost: "0",
-    pendingAmount: "",
     notes: "",
   };
+}
+
+// Valor "cheio" de um item (preço unitário x quantidade + acréscimo de
+// personalização) — usado só pra ratear o valor pendente da venda entre
+// as camisas na hora de enviar; é a mesma conta que o banco faz pra
+// total_sale_amount (quantity * unit_sale_price + customization_fee).
+function itemFullValue(it: SaleItemDraft, productById: Map<string, Product>): number {
+  const unitPrice = it.salePrice
+    ? Number(it.salePrice)
+    : (() => {
+        const p = productById.get(it.productId);
+        return p ? effectivePrice(p) : 0;
+      })();
+  return unitPrice * Number(it.quantity || 0) + Number(it.customizationFee || 0);
+}
+
+// Divide o valor pendente total da venda entre as camisas, proporcional
+// ao valor de cada uma. O último item absorve a diferença de arredondamento,
+// pra soma bater exatamente com o total pendente informado.
+function splitPendingAmount(items: SaleItemDraft[], productById: Map<string, Product>, totalPending: number): number[] {
+  const values = items.map((it) => itemFullValue(it, productById));
+  const grandTotal = values.reduce((s, v) => s + v, 0);
+  let allocated = 0;
+  return values.map((value, idx) => {
+    if (idx === values.length - 1) {
+      return Math.max(0, Math.round((totalPending - allocated) * 100) / 100);
+    }
+    const share = grandTotal > 0 ? Math.round(totalPending * (value / grandTotal) * 100) / 100 : 0;
+    allocated += share;
+    return share;
+  });
 }
 
 function RegisterSaleForm({
@@ -903,14 +932,21 @@ function RegisterSaleForm({
   onSubmit,
   saving,
 }: {
-  products: { id: string; name: string; code: string }[];
+  products: Pick<Product, "id" | "name" | "code" | "price" | "sale_price">[];
   onSubmit: (input: RegisterSaleInput) => Promise<Sale>;
   saving: boolean;
 }) {
   const [items, setItems] = useState<SaleItemDraft[]>([emptySaleItem()]);
   const [soldAt, setSoldAt] = useState("");
   const [customerName, setCustomerName] = useState("");
+  const [pendingTotal, setPendingTotal] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const productById = useMemo(() => new Map(products.map((p) => [p.id, p as Product])), [products]);
+  const grandTotal = useMemo(
+    () => items.reduce((sum, it) => sum + itemFullValue(it, productById), 0),
+    [items, productById],
+  );
 
   function updateItem(key: string, patch: Partial<SaleItemDraft>) {
     setItems((prev) => prev.map((it) => (it.key === key ? { ...it, ...patch } : it)));
@@ -953,11 +989,16 @@ function RegisterSaleForm({
         toast.error(`O preço de venda não pode ser negativo${label}`);
         return;
       }
-      const pending = Number(it.pendingAmount || 0);
-      if (pending < 0) {
-        toast.error(`O valor pendente não pode ser negativo${label}`);
-        return;
-      }
+    }
+
+    const totalPending = Number(pendingTotal || 0);
+    if (totalPending < 0) {
+      toast.error("O valor pendente não pode ser negativo");
+      return;
+    }
+    if (totalPending > grandTotal + 0.01) {
+      toast.error("O valor pendente não pode ser maior que o total da venda");
+      return;
     }
 
     setSubmitting(true);
@@ -971,8 +1012,10 @@ function RegisterSaleForm({
     // "agora" próprio). Esse horário idêntico + o nome do comprador é o
     // que permite agrupar as camisas da mesma venda em "Últimas vendas".
     const effectiveSoldAt = soldAt ? new Date(soldAt).toISOString() : new Date().toISOString();
+    const pendingPerItem = splitPendingAmount(items, productById, totalPending);
     try {
-      for (const it of items) {
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
         const sale = await onSubmit({
           productId: it.productId,
           quantity: Number(it.quantity),
@@ -980,7 +1023,7 @@ function RegisterSaleForm({
           customizationCost: Number(it.customizationCost || 0),
           unitCostPrice: it.costPrice ? Number(it.costPrice) : undefined,
           unitSalePrice: it.salePrice ? Number(it.salePrice) : undefined,
-          pendingAmount: Number(it.pendingAmount || 0),
+          pendingAmount: pendingPerItem[i],
           soldAt: effectiveSoldAt,
           customerName: customerName.trim() || undefined,
           notes: it.notes.trim() || undefined,
@@ -1012,13 +1055,19 @@ function RegisterSaleForm({
       setItems([emptySaleItem()]);
       setSoldAt("");
       setCustomerName("");
+      setPendingTotal("");
     } catch {
       // As camisas já enviadas com sucesso ficaram salvas no banco — tira
       // elas da lista pra não arriscar lançar de novo, e deixa o resto
       // (incluindo a que falhou) pra corrigir e reenviar. O toast de erro
       // específico já é disparado pelo onSubmit (mutation) lá no dashboard.
       if (savedCount > 0) {
+        const alreadyAllocated = pendingPerItem.slice(0, savedCount).reduce((s, v) => s + v, 0);
         setItems((prev) => prev.slice(savedCount));
+        setPendingTotal((prev) => {
+          const remaining = Number(prev || 0) - alreadyAllocated;
+          return remaining > 0 ? remaining.toFixed(2) : "";
+        });
         toast.error(
           `${savedCount} de ${items.length} camisa(s) já foram lançadas antes do erro — ajuste e envie o restante.`,
         );
@@ -1132,21 +1181,6 @@ function RegisterSaleForm({
                 />
                 <p className="mt-1 text-[11px] text-muted-foreground">Quanto isso custou pra você.</p>
               </div>
-              <div>
-                <Label htmlFor={`sale-pending-${it.key}`}>Valor pendente (se parcelado)</Label>
-                <Input
-                  id={`sale-pending-${it.key}`}
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  placeholder="0,00"
-                  value={it.pendingAmount}
-                  onChange={(e) => updateItem(it.key, { pendingAmount: e.target.value })}
-                />
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  Deixe em branco se já recebeu tudo.
-                </p>
-              </div>
               <div className="sm:col-span-2 lg:col-span-4">
                 <Label htmlFor={`sale-item-notes-${it.key}`}>Anotação desta camisa (opcional)</Label>
                 <textarea
@@ -1167,6 +1201,31 @@ function RegisterSaleForm({
         <Plus className="h-4 w-4" />
         Adicionar outra camisa
       </Button>
+
+      <div className="rounded-xl border border-border p-4">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Total desta venda</span>
+          <span className="font-semibold">{formatPrice(grandTotal)}</span>
+        </div>
+        <div className="mt-3">
+          <Label htmlFor="sale-pending-total">Valor pendente desta venda (se parcelado)</Label>
+          <Input
+            id="sale-pending-total"
+            type="number"
+            min={0}
+            step="0.01"
+            max={grandTotal || undefined}
+            placeholder="0,00"
+            value={pendingTotal}
+            onChange={(e) => setPendingTotal(e.target.value)}
+            className="max-w-xs"
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Deixe em branco se já recebeu tudo. Se a venda tiver mais de uma camisa, esse valor é
+            dividido automaticamente entre elas, proporcional ao preço de cada uma.
+          </p>
+        </div>
+      </div>
 
       <div>
         <Label htmlFor="sale-customer">Nome do comprador (opcional)</Label>
