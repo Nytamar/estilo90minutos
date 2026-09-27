@@ -140,11 +140,16 @@ export async function deleteSale(id: string): Promise<void> {
 }
 
 export type NotifySalePayload = {
-  items: { productName: string; quantity: number; totalSaleAmount: number; totalProfitAmount: number }[];
+  items: {
+    productName: string;
+    quantity: number;
+    totalSaleAmount: number;
+    totalProfitAmount: number;
+    notes?: string | null;
+  }[];
   totalAmount: number;
   totalProfit: number;
   customerName?: string | null;
-  notes?: string | null;
   soldAt?: string | null;
 };
 
