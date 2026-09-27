@@ -19,9 +19,9 @@
 // em Project Settings > Edge Functions > notify-sale, ou via CLI:
 // `supabase secrets set NOME=valor`):
 //
-//   CALLMEBOT_RECIPIENT_1_PHONE   -> seu número, formato internacional, só dígitos (ex: 5554999998888)
+//   CALLMEBOT_RECIPIENT_1_PHONE   -> seu número, formato internacional COM o "+" na frente (ex: +5554999998888)
 //   CALLMEBOT_RECIPIENT_1_APIKEY  -> a apikey que você recebeu do bot
-//   CALLMEBOT_RECIPIENT_2_PHONE   -> número do sócio
+//   CALLMEBOT_RECIPIENT_2_PHONE   -> número do sócio, mesmo formato (com "+")
 //   CALLMEBOT_RECIPIENT_2_APIKEY  -> apikey do sócio
 //
 // Se algum dos dois pares não estiver configurado, essa pessoa simplesmente
@@ -38,6 +38,7 @@ type SaleItemPayload = {
   quantity: number;
   totalSaleAmount: number;
   totalProfitAmount: number;
+  notes?: string | null;
 };
 
 type NotifyPayload = {
@@ -45,7 +46,6 @@ type NotifyPayload = {
   totalAmount: number;
   totalProfit: number;
   customerName?: string | null;
-  notes?: string | null;
   soldAt?: string | null;
 };
 
@@ -68,16 +68,14 @@ function buildMessage(payload: NotifyPayload): string {
   lines.push("");
   for (const item of payload.items) {
     lines.push(`• ${item.quantity}x ${item.productName} — ${formatBRL(item.totalSaleAmount)}`);
+    if (item.notes) {
+      lines.push(`  📝 ${item.notes}`);
+    }
   }
 
   lines.push("");
   lines.push(`💰 Total: ${formatBRL(payload.totalAmount)}`);
   lines.push(`📈 Lucro: ${formatBRL(payload.totalProfit)}`);
-
-  if (payload.notes) {
-    lines.push("");
-    lines.push(`📝 ${payload.notes}`);
-  }
 
   return lines.join("\n");
 }
@@ -89,14 +87,36 @@ async function sendToCallMeBot(phone: string, apikey: string, text: string): Pro
   url.searchParams.set("text", text);
 
   try {
-    const res = await fetch(url.toString(), { method: "GET" });
-    // O CallMeBot responde 200 com um HTML mesmo em alguns casos de erro
-    // (ex: apikey inválida), então além do status a gente confere se o
-    // corpo não indica erro explicitamente.
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        // Sem isso, o Deno manda um User-Agent de servidor (algo tipo
+        // "Deno/2.x"), e o CallMeBot parece tratar chamadas assim de forma
+        // diferente de uma chamada feita por um navegador — colocando em
+        // fila de revisão em vez de mandar direto. Um User-Agent de
+        // navegador comum reduz a chance disso acontecer.
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+      },
+    });
     const body = await res.text();
-    const looksLikeError = /error|invalid|not registered/i.test(body);
-    return res.ok && !looksLikeError;
-  } catch {
+
+    // Log de diagnóstico SEM cortar (aparece em Edge Functions > notify-sale
+    // > Logs no painel do Supabase) — mostra o telefone (só os 4 últimos
+    // dígitos), o status HTTP e a resposta completa do CallMeBot.
+    console.log(`[notify-sale] telefone ***${phone.slice(-4)} — status ${res.status}`);
+    console.log(`[notify-sale] resposta completa: ${body}`);
+
+    // A resposta de sucesso real do CallMeBot é bem específica: contém a
+    // palavra "queued" (de "Message queued. You will receive it in a few
+    // seconds."). Qualquer coisa diferente disso (mensagem de erro, página
+    // de revisão manual, etc.) a gente trata como "não enviado" — é uma
+    // checagem mais rígida (whitelist) em vez de tentar adivinhar palavras
+    // de erro (blacklist), que se mostrou pouco confiável.
+    const looksSuccessful = /queued|message sent/i.test(body);
+    return res.ok && looksSuccessful;
+  } catch (err) {
+    console.log(`[notify-sale] telefone ***${phone.slice(-4)} — erro de rede: ${String(err)}`);
     return false;
   }
 }
