@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -241,6 +241,33 @@ function FinanceiroDashboard({
   const { data: recentSales = [] } = useQuery(recentSalesQuery());
   const { data: pendingSales = [] } = useQuery(pendingSalesQuery());
   const { data: products = [] } = useQuery(productsQuery(false));
+
+  const productNameById = useMemo(() => new Map(products.map((p) => [p.id, p.name])), [products]);
+
+  // Agrupa vendas com o mesmo comprador + exatamente o mesmo horário (as
+  // camisas lançadas juntas numa mesma venda sempre compartilham os dois,
+  // veja o "effectiveSoldAt" em RegisterSaleForm) — assim uma venda de 3
+  // camisas pro mesmo cliente aparece como 1 cartão em "Últimas vendas",
+  // com cada peça listada dentro, em vez de 3 linhas soltas e repetidas.
+  // Sem nome de comprador, cada venda continua aparecendo separada, do
+  // jeito que já era.
+  type RecentSaleGroup = { key: string; customerName: string | null; sales: Sale[] };
+  const recentSaleGroups = useMemo<RecentSaleGroup[]>(() => {
+    const groups: RecentSaleGroup[] = [];
+    const indexByKey = new Map<string, number>();
+    for (const s of recentSales) {
+      const name = s.customer_name?.trim() || null;
+      const groupKey = name ? `${name.toLowerCase()}__${s.sold_at}` : `__solo__${s.id}`;
+      const existingIndex = indexByKey.get(groupKey);
+      if (existingIndex !== undefined) {
+        groups[existingIndex].sales.push(s);
+      } else {
+        indexByKey.set(groupKey, groups.length);
+        groups.push({ key: groupKey, customerName: name, sales: [s] });
+      }
+    }
+    return groups;
+  }, [recentSales]);
 
   const totals = daily.reduce(
     (acc, d) => ({
@@ -507,43 +534,104 @@ function FinanceiroDashboard({
       <div className="surface-card rounded-2xl p-5">
         <h2 className="mb-3 font-display text-xl">Últimas vendas</h2>
         <ul className="space-y-2 text-sm">
-          {recentSales.map((s) => (
-            <li key={s.id} className="flex items-center gap-3 border-b border-border/50 py-2">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-violet-100 text-xs font-bold text-violet-600">
-                {(s.customer_name || "?").slice(0, 2).toUpperCase()}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p>{new Date(s.sold_at).toLocaleString("pt-BR")}</p>
-                <p className="text-xs text-muted-foreground">
-                  {s.quantity}x · custo {formatPrice(s.unit_cost_price)} · venda {formatPrice(s.unit_sale_price)}
-                  {Number(s.customization_fee) > 0 && (
-                    <> · personalização +{formatPrice(s.customization_fee)}</>
-                  )}
-                  {Number(s.customization_cost) > 0 && (
-                    <> (custo {formatPrice(s.customization_cost)})</>
-                  )}
-                </p>
-                {s.notes && <p className="mt-0.5 truncate text-xs italic text-muted-foreground">{s.notes}</p>}
-                {Number(s.pending_amount) > 0 && (
-                  <p className="mt-0.5 text-xs font-medium text-warning">
-                    Falta receber {formatPrice(s.pending_amount)}
-                  </p>
-                )}
-              </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <span className="font-semibold text-primary">{formatPrice(s.total_profit_amount)}</span>
-                <button
-                  type="button"
-                  aria-label="Editar venda"
-                  onClick={() => setEditingSale(s)}
-                  className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                >
-                  <Pencil className="h-4 w-4" />
-                </button>
-                <DeleteSaleButton sale={s} onConfirm={removeSale} deleting={deleting} />
-              </div>
-            </li>
-          ))}
+          {recentSaleGroups.map((group) =>
+            group.sales.length > 1 ? (
+              <li key={group.key} className="border-b border-border/50 py-2">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-violet-100 text-xs font-bold text-violet-600">
+                    {(group.customerName || "?").slice(0, 2).toUpperCase()}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{group.customerName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(group.sales[0].sold_at).toLocaleString("pt-BR")} · {group.sales.length} camisas
+                    </p>
+                  </div>
+                  <span className="shrink-0 font-semibold text-primary">
+                    {formatPrice(group.sales.reduce((sum, s) => sum + Number(s.total_profit_amount), 0))}
+                  </span>
+                </div>
+                <ul className="mt-2 space-y-1.5 border-l-2 border-border pl-4">
+                  {group.sales.map((s) => (
+                    <li key={s.id} className="flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate">
+                          {s.quantity}x {productNameById.get(s.product_id) ?? "Produto"} · venda{" "}
+                          {formatPrice(s.unit_sale_price)}
+                        </p>
+                        {s.notes && (
+                          <p className="truncate text-xs italic text-muted-foreground">{s.notes}</p>
+                        )}
+                        {Number(s.pending_amount) > 0 && (
+                          <p className="text-xs font-medium text-warning">
+                            Falta receber {formatPrice(s.pending_amount)}
+                          </p>
+                        )}
+                      </div>
+                      <span className="shrink-0 text-xs font-semibold text-primary">
+                        {formatPrice(s.total_profit_amount)}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label="Editar venda"
+                        onClick={() => setEditingSale(s)}
+                        className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <DeleteSaleButton sale={s} onConfirm={removeSale} deleting={deleting} />
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ) : (
+              <li key={group.key} className="flex items-center gap-3 border-b border-border/50 py-2">
+                {(() => {
+                  const s = group.sales[0];
+                  return (
+                    <>
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-violet-100 text-xs font-bold text-violet-600">
+                        {(s.customer_name || "?").slice(0, 2).toUpperCase()}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p>{new Date(s.sold_at).toLocaleString("pt-BR")}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {s.quantity}x {productNameById.get(s.product_id) ?? "Produto"} · custo{" "}
+                          {formatPrice(s.unit_cost_price)} · venda {formatPrice(s.unit_sale_price)}
+                          {Number(s.customization_fee) > 0 && (
+                            <> · personalização +{formatPrice(s.customization_fee)}</>
+                          )}
+                          {Number(s.customization_cost) > 0 && (
+                            <> (custo {formatPrice(s.customization_cost)})</>
+                          )}
+                        </p>
+                        {s.notes && (
+                          <p className="mt-0.5 truncate text-xs italic text-muted-foreground">{s.notes}</p>
+                        )}
+                        {Number(s.pending_amount) > 0 && (
+                          <p className="mt-0.5 text-xs font-medium text-warning">
+                            Falta receber {formatPrice(s.pending_amount)}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-3">
+                        <span className="font-semibold text-primary">{formatPrice(s.total_profit_amount)}</span>
+                        <button
+                          type="button"
+                          aria-label="Editar venda"
+                          onClick={() => setEditingSale(s)}
+                          className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <DeleteSaleButton sale={s} onConfirm={removeSale} deleting={deleting} />
+                      </div>
+                    </>
+                  );
+                })()}
+              </li>
+            ),
+          )}
           {recentSales.length === 0 && <li className="text-muted-foreground">Nenhuma venda ainda.</li>}
         </ul>
       </div>
@@ -791,6 +879,7 @@ type SaleItemDraft = {
   customizationFee: string;
   customizationCost: string;
   pendingAmount: string;
+  notes: string;
 };
 
 let itemKeySeq = 0;
@@ -805,6 +894,7 @@ function emptySaleItem(): SaleItemDraft {
     customizationFee: "0",
     customizationCost: "0",
     pendingAmount: "",
+    notes: "",
   };
 }
 
@@ -819,7 +909,7 @@ function RegisterSaleForm({
 }) {
   const [items, setItems] = useState<SaleItemDraft[]>([emptySaleItem()]);
   const [soldAt, setSoldAt] = useState("");
-  const [notes, setNotes] = useState("");
+  const [customerName, setCustomerName] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   function updateItem(key: string, patch: Partial<SaleItemDraft>) {
@@ -873,6 +963,14 @@ function RegisterSaleForm({
     setSubmitting(true);
     let savedCount = 0;
     const savedSales: Sale[] = [];
+    // Calculado UMA vez só e reaproveitado em todos os itens do loop —
+    // é o que garante que todas as camisas desta venda fiquem com o
+    // exato mesmo "sold_at" no banco, mesmo quando o campo de data é
+    // deixado em branco (cada chamada a onSubmit roda em um momento
+    // levemente diferente, então sem isso cada item pegaria um
+    // "agora" próprio). Esse horário idêntico + o nome do comprador é o
+    // que permite agrupar as camisas da mesma venda em "Últimas vendas".
+    const effectiveSoldAt = soldAt ? new Date(soldAt).toISOString() : new Date().toISOString();
     try {
       for (const it of items) {
         const sale = await onSubmit({
@@ -883,8 +981,9 @@ function RegisterSaleForm({
           unitCostPrice: it.costPrice ? Number(it.costPrice) : undefined,
           unitSalePrice: it.salePrice ? Number(it.salePrice) : undefined,
           pendingAmount: Number(it.pendingAmount || 0),
-          soldAt: soldAt ? new Date(soldAt).toISOString() : undefined,
-          notes: notes.trim() || undefined,
+          soldAt: effectiveSoldAt,
+          customerName: customerName.trim() || undefined,
+          notes: it.notes.trim() || undefined,
         });
         savedSales.push(sale);
         savedCount += 1;
@@ -902,16 +1001,17 @@ function RegisterSaleForm({
           quantity: sale.quantity,
           totalSaleAmount: Number(sale.total_sale_amount),
           totalProfitAmount: Number(sale.total_profit_amount),
+          notes: sale.notes ?? null,
         })),
         totalAmount: savedSales.reduce((sum, s) => sum + Number(s.total_sale_amount), 0),
         totalProfit: savedSales.reduce((sum, s) => sum + Number(s.total_profit_amount), 0),
-        notes: notes.trim() || null,
+        customerName: customerName.trim() || null,
         soldAt: savedSales[0]?.sold_at ?? null,
       });
 
       setItems([emptySaleItem()]);
       setSoldAt("");
-      setNotes("");
+      setCustomerName("");
     } catch {
       // As camisas já enviadas com sucesso ficaram salvas no banco — tira
       // elas da lista pra não arriscar lançar de novo, e deixa o resto
@@ -1047,6 +1147,17 @@ function RegisterSaleForm({
                   Deixe em branco se já recebeu tudo.
                 </p>
               </div>
+              <div className="sm:col-span-2 lg:col-span-4">
+                <Label htmlFor={`sale-item-notes-${it.key}`}>Anotação desta camisa (opcional)</Label>
+                <textarea
+                  id={`sale-item-notes-${it.key}`}
+                  rows={2}
+                  placeholder="Ex.: nome e número na camisa, tamanho, forma de pagamento combinada, etc."
+                  value={it.notes}
+                  onChange={(e) => updateItem(it.key, { notes: e.target.value })}
+                  className="border-input bg-background flex w-full rounded-md border px-3 py-2 text-sm"
+                />
+              </div>
             </div>
           </div>
         ))}
@@ -1057,31 +1168,34 @@ function RegisterSaleForm({
         Adicionar outra camisa
       </Button>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <Label htmlFor="sale-date">Data da venda</Label>
-          <Input
-            id="sale-date"
-            type="datetime-local"
-            value={soldAt}
-            onChange={(e) => setSoldAt(e.target.value)}
-          />
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Deixe em branco pra usar agora. Preencha pra lançar uma venda de outro dia/mês. Vale pra
-            todas as camisas desta venda.
-          </p>
-        </div>
-        <div>
-          <Label htmlFor="sale-notes">Anotação (opcional)</Label>
-          <textarea
-            id="sale-notes"
-            rows={2}
-            placeholder="Ex.: nome e número na camisa, forma de pagamento combinada, etc."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="border-input bg-background flex w-full rounded-md border px-3 py-2 text-sm"
-          />
-        </div>
+      <div>
+        <Label htmlFor="sale-customer">Nome do comprador (opcional)</Label>
+        <Input
+          id="sale-customer"
+          type="text"
+          placeholder="Ex.: João Silva"
+          value={customerName}
+          onChange={(e) => setCustomerName(e.target.value)}
+          className="max-w-xs"
+        />
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Preenchendo, todas as camisas desta venda aparecem agrupadas em "Últimas vendas".
+        </p>
+      </div>
+
+      <div>
+        <Label htmlFor="sale-date">Data da venda</Label>
+        <Input
+          id="sale-date"
+          type="datetime-local"
+          value={soldAt}
+          onChange={(e) => setSoldAt(e.target.value)}
+          className="max-w-xs"
+        />
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Deixe em branco pra usar agora. Preencha pra lançar uma venda de outro dia/mês. Vale pra
+          todas as camisas desta venda.
+        </p>
       </div>
 
       <Button type="submit" disabled={busy}>
