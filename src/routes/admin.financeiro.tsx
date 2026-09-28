@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { toast } from "sonner";
-import { Lock, LogOut, ShieldCheck, Trash2, Pencil, Plus } from "lucide-react";
+import { Lock, LogOut, ShieldCheck, Trash2, Pencil, Plus, ChevronDown } from "lucide-react";
 import { useFinancialPin } from "@/hooks/useFinancialPin";
 import { productsQuery, effectivePrice, type Product } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
@@ -23,6 +23,7 @@ import {
   financialDailyQuery,
   notifySale,
   pendingSalesQuery,
+  receiveGroupPayment,
   recentSalesQuery,
   registerSale,
   updateSale,
@@ -269,6 +270,24 @@ function FinanceiroDashboard({
     return groups;
   }, [recentSales]);
 
+  // Mesmo agrupamento, mas para "A receber": um cartão por cliente/venda.
+  const pendingGroups = useMemo<RecentSaleGroup[]>(() => {
+    const groups: RecentSaleGroup[] = [];
+    const indexByKey = new Map<string, number>();
+    for (const s of pendingSales) {
+      const name = s.customer_name?.trim() || null;
+      const groupKey = name ? `${name.toLowerCase()}__${s.sold_at}` : `__solo__${s.id}`;
+      const existingIndex = indexByKey.get(groupKey);
+      if (existingIndex !== undefined) {
+        groups[existingIndex].sales.push(s);
+      } else {
+        indexByKey.set(groupKey, groups.length);
+        groups.push({ key: groupKey, customerName: name, sales: [s] });
+      }
+    }
+    return groups;
+  }, [pendingSales]);
+
   const totals = daily.reduce(
     (acc, d) => ({
       revenue: acc.revenue + Number(d.revenue ?? 0),
@@ -313,15 +332,16 @@ function FinanceiroDashboard({
     },
   });
 
-  const { mutate: markReceived } = useMutation({
-    mutationFn: (id: string) => updateSale(id, { pendingAmount: 0 }),
+  const { mutateAsync: receivePayment, isPending: receiving } = useMutation({
+    mutationFn: ({ sales, amount }: { sales: Sale[]; amount: number }) =>
+      receiveGroupPayment(sales, amount),
     onSuccess: () => {
-      toast.success("Marcado como recebido");
+      toast.success("Pagamento registrado");
       void qc.invalidateQueries({ queryKey: ["sales"] });
       void qc.invalidateQueries({ queryKey: ["sales-pending"] });
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Erro ao atualizar");
+      toast.error(err instanceof Error ? err.message : "Erro ao registrar o pagamento");
     },
   });
 
@@ -410,23 +430,15 @@ function FinanceiroDashboard({
               {formatPrice(pendingSales.reduce((sum, s) => sum + Number(s.pending_amount), 0))}
             </span>
           </div>
-          <ul className="space-y-2 text-sm">
-            {pendingSales.map((s) => (
-              <li key={s.id} className="flex items-center justify-between gap-2 border-b border-amber-200/60 py-2">
-                <div className="min-w-0">
-                  <p className="text-amber-900">{new Date(s.sold_at).toLocaleDateString("pt-BR")}</p>
-                  {s.customer_name && (
-                    <p className="text-xs text-amber-700/80">{s.customer_name}</p>
-                  )}
-                  {s.notes && <p className="text-xs italic text-amber-700/70">{s.notes}</p>}
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <span className="font-medium text-amber-700">{formatPrice(s.pending_amount)}</span>
-                  <Button size="sm" variant="outline" onClick={() => markReceived(s.id)}>
-                    Marcar como recebido
-                  </Button>
-                </div>
-              </li>
+          <ul className="space-y-3 text-sm">
+            {pendingGroups.map((group) => (
+              <PendingGroupCard
+                key={group.key}
+                group={group}
+                productNameById={productNameById}
+                receiving={receiving}
+                onReceive={(amount) => receivePayment({ sales: group.sales, amount })}
+              />
             ))}
           </ul>
         </div>
@@ -546,31 +558,40 @@ function FinanceiroDashboard({
                     <p className="text-xs text-muted-foreground">
                       {new Date(group.sales[0].sold_at).toLocaleString("pt-BR")} · {group.sales.length} camisas
                     </p>
+                    {(() => {
+                      const total = group.sales.reduce((sum, s) => sum + Number(s.total_sale_amount), 0);
+                      const falta = group.sales.reduce((sum, s) => sum + Number(s.pending_amount), 0);
+                      return (
+                        <p className="text-xs">
+                          <span className="font-medium">Total {formatPrice(total)}</span>
+                          {falta > 0 && (
+                            <>
+                              <span className="text-muted-foreground"> · Pago {formatPrice(total - falta)} · </span>
+                              <span className="font-medium text-warning">Falta {formatPrice(falta)}</span>
+                            </>
+                          )}
+                        </p>
+                      );
+                    })()}
                   </div>
-                  <span className="shrink-0 font-semibold text-primary">
-                    {formatPrice(group.sales.reduce((sum, s) => sum + Number(s.total_profit_amount), 0))}
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    lucro {formatPrice(group.sales.reduce((sum, s) => sum + Number(s.total_profit_amount), 0))}
                   </span>
                 </div>
                 <ul className="mt-2 space-y-1.5 border-l-2 border-border pl-4">
                   {group.sales.map((s) => (
                     <li key={s.id} className="flex items-center gap-3">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate">
-                          {s.quantity}x {productNameById.get(s.product_id) ?? "Produto"} · venda{" "}
-                          {formatPrice(s.unit_sale_price)}
+                        <p className="line-clamp-2 break-words">
+                          {s.quantity}x {productNameById.get(s.product_id) ?? "Produto"}
                         </p>
                         {s.notes && (
-                          <p className="truncate text-xs italic text-muted-foreground">{s.notes}</p>
+                          <p className="text-xs italic text-muted-foreground">{s.notes}</p>
                         )}
-                        {Number(s.pending_amount) > 0 && (
-                          <p className="text-xs font-medium text-warning">
-                            Falta receber {formatPrice(s.pending_amount)}
-                          </p>
-                        )}
+                        <p className="text-xs text-muted-foreground">
+                          venda {formatPrice(s.total_sale_amount)} · lucro {formatPrice(s.total_profit_amount)}
+                        </p>
                       </div>
-                      <span className="shrink-0 text-xs font-semibold text-primary">
-                        {formatPrice(s.total_profit_amount)}
-                      </span>
                       <button
                         type="button"
                         aria-label="Editar venda"
@@ -863,6 +884,130 @@ function DeleteSaleButton({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+// Cartão de "A receber": um por cliente/venda, com total, pago e falta.
+// O pagamento (parcial ou total) é abatido das camisas por trás.
+function PendingGroupCard({
+  group,
+  productNameById,
+  receiving,
+  onReceive,
+}: {
+  group: { key: string; customerName: string | null; sales: Sale[] };
+  productNameById: Map<string, string>;
+  receiving: boolean;
+  onReceive: (amount: number) => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [amount, setAmount] = useState("");
+
+  const total = group.sales.reduce((sum, s) => sum + Number(s.total_sale_amount), 0);
+  const falta = group.sales.reduce((sum, s) => sum + Number(s.pending_amount), 0);
+
+  async function confirm() {
+    const value = Number(amount);
+    if (!value || value <= 0) {
+      toast.error("Informe quanto o cliente pagou");
+      return;
+    }
+    if (value > falta + 0.005) {
+      toast.error("O valor é maior do que o que falta receber");
+      return;
+    }
+    await onReceive(Math.min(value, falta));
+    setPaying(false);
+    setAmount("");
+  }
+
+  return (
+    <li className="rounded-xl border border-amber-200/70 bg-white/60 p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-medium text-amber-900">{group.customerName ?? "Sem nome"}</p>
+          <p className="text-xs text-amber-700/80">
+            {new Date(group.sales[0].sold_at).toLocaleDateString("pt-BR")} · {group.sales.length}{" "}
+            {group.sales.length === 1 ? "camisa" : "camisas"}
+          </p>
+        </div>
+        <span className="shrink-0 font-semibold text-amber-700">Falta {formatPrice(falta)}</span>
+      </div>
+      <p className="mt-1 text-xs text-amber-800/80">
+        Total {formatPrice(total)} · Pago {formatPrice(total - falta)}
+      </p>
+
+      {paying ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Input
+            type="number"
+            min={0}
+            step="0.01"
+            max={falta}
+            placeholder="Quanto pagou? 0,00"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="h-9 w-40 bg-white"
+            autoFocus
+          />
+          <Button size="sm" onClick={confirm} disabled={receiving}>
+            Confirmar
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setPaying(false);
+              setAmount("");
+            }}
+          >
+            Cancelar
+          </Button>
+        </div>
+      ) : (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setPaying(true)} disabled={receiving}>
+            Receber pagamento
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onReceive(falta)}
+            disabled={receiving}
+            className="text-amber-800"
+          >
+            Receber tudo
+          </Button>
+          {group.sales.length > 1 && (
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              className="ml-auto flex items-center gap-1 text-xs text-amber-800 hover:underline"
+            >
+              {open ? "ocultar camisas" : "ver camisas"}
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {open && (
+        <ul className="mt-3 space-y-1 border-t border-amber-200/60 pt-2 text-xs text-amber-900">
+          {group.sales.map((s) => (
+            <li key={s.id} className="flex justify-between gap-3">
+              <span className="min-w-0 break-words">
+                {s.quantity}x {productNameById.get(s.product_id) ?? "Produto"}
+                {s.notes ? ` — ${s.notes}` : ""}
+              </span>
+              <span className="shrink-0">
+                {Number(s.pending_amount) > 0 ? `falta ${formatPrice(s.pending_amount)}` : "pago"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </li>
   );
 }
 
