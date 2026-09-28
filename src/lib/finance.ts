@@ -204,7 +204,41 @@ export async function fetchPendingSales(): Promise<Sale[]> {
     .gt("pending_amount", 0)
     .order("sold_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as unknown as Sale[];
+  const pending = (data ?? []) as unknown as Sale[];
+
+  // Traz junto as outras camisas da mesma venda (mesmo comprador + mesmo
+  // horário) que já estão quitadas, pra o total/pago do cliente ficar certo.
+  const groupKey = (s: Sale) => `${(s.customer_name ?? "").trim().toLowerCase()}__${s.sold_at}`;
+  const named = (s: Sale) => !!s.customer_name?.trim();
+  const soldAts = [...new Set(pending.filter(named).map((s) => s.sold_at))];
+  if (soldAts.length === 0) return pending;
+
+  const { data: siblings, error: siblingsError } = await supabase
+    .from("sales")
+    .select("*")
+    .in("sold_at", soldAts);
+  if (siblingsError) throw siblingsError;
+
+  const pendingKeys = new Set(pending.filter(named).map(groupKey));
+  const knownIds = new Set(pending.map((s) => s.id));
+  const extra = ((siblings ?? []) as unknown as Sale[]).filter(
+    (s) => named(s) && pendingKeys.has(groupKey(s)) && !knownIds.has(s.id),
+  );
+  return [...pending, ...extra].sort((a, b) => b.sold_at.localeCompare(a.sold_at));
+}
+
+// Abate um pagamento do saldo devedor de uma venda com várias camisas,
+// quitando uma camisa por vez (na ordem) até acabar o valor recebido.
+export async function receiveGroupPayment(sales: Sale[], amount: number): Promise<void> {
+  let remaining = Math.round(amount * 100);
+  for (const s of sales) {
+    if (remaining <= 0) break;
+    const pendingCents = Math.round(Number(s.pending_amount) * 100);
+    if (pendingCents <= 0) continue;
+    const paidCents = Math.min(pendingCents, remaining);
+    await updateSale(s.id, { pendingAmount: (pendingCents - paidCents) / 100 });
+    remaining -= paidCents;
+  }
 }
 
 export async function fetchRecentSales(limit = 15): Promise<Sale[]> {
