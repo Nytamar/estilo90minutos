@@ -241,12 +241,10 @@ export async function receiveGroupPayment(sales: Sale[], amount: number): Promis
   }
 }
 
-export async function fetchRecentSales(limit = 15): Promise<Sale[]> {
-  const { data, error } = await supabase
-    .from("sales")
-    .select("*")
-    .order("sold_at", { ascending: false })
-    .limit(limit);
+export async function fetchRecentSales(limit: number | null = 15): Promise<Sale[]> {
+  let query = supabase.from("sales").select("*").order("sold_at", { ascending: false });
+  if (limit != null) query = query.limit(limit);
+  const { data, error } = await query;
   if (error) throw error;
   return (data ?? []) as unknown as Sale[];
 }
@@ -261,7 +259,7 @@ export const financialByProductQuery = () => ({
   queryFn: fetchFinancialByProduct,
 });
 
-export const recentSalesQuery = (limit = 15) => ({
+export const recentSalesQuery = (limit: number | null = 15) => ({
   queryKey: ["sales", limit],
   queryFn: () => fetchRecentSales(limit),
 });
