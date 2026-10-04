@@ -239,7 +239,10 @@ function FinanceiroDashboard({
   const { data: daily = [], isLoading: loadingDaily } = useQuery(financialDailyQuery());
   const { data: byProduct = [], isLoading: loadingProducts } = useQuery(financialByProductQuery());
   const { data: monthly = [] } = useQuery(financialMonthlyQuery());
-  const { data: recentSales = [] } = useQuery(recentSalesQuery());
+  const [showAllSales, setShowAllSales] = useState(false);
+  const { data: recentSales = [], isFetching: loadingRecentSales } = useQuery(
+    recentSalesQuery(showAllSales ? null : 15),
+  );
   const { data: pendingSales = [] } = useQuery(pendingSalesQuery());
   const { data: products = [] } = useQuery(productsQuery(false));
 
@@ -544,7 +547,17 @@ function FinanceiroDashboard({
 
       {/* Vendas recentes */}
       <div className="surface-card rounded-2xl p-5">
-        <h2 className="mb-3 font-display text-xl">Últimas vendas</h2>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="font-display text-xl">{showAllSales ? "Todas as vendas" : "Últimas vendas"}</h2>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowAllSales((v) => !v)}
+            disabled={loadingRecentSales}
+          >
+            {showAllSales ? "Ver só as recentes" : "Ver todas as vendas"}
+          </Button>
+        </div>
         <ul className="space-y-2 text-sm">
           {recentSaleGroups.map((group) =>
             group.sales.length > 1 ? (
@@ -653,7 +666,9 @@ function FinanceiroDashboard({
               </li>
             ),
           )}
-          {recentSales.length === 0 && <li className="text-muted-foreground">Nenhuma venda ainda.</li>}
+          {recentSales.length === 0 && !loadingRecentSales && (
+            <li className="text-muted-foreground">Nenhuma venda ainda.</li>
+          )}
         </ul>
       </div>
 
