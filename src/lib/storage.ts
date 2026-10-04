@@ -10,6 +10,17 @@ const MAX_DIMENSION = 1600;
 const JPEG_QUALITY = 0.82;
 const SKIP_IF_UNDER_BYTES = 400 * 1024; // já é leve, não vale reprocessar
 
+/**
+ * Banners do hero ocupam a largura inteira da tela (bem maior que um card
+ * de produto), então o corte de 1600px/qualidade 0,82 usado nas outras
+ * imagens fica visivelmente borrado/com artefato de compressão quando
+ * esticado. Aqui o limite é bem mais alto, cobrindo telas grandes/retina.
+ */
+const BANNER_MAX_DIMENSION = 2400;
+const BANNER_JPEG_QUALITY = 0.92;
+
+type CompressOptions = { maxDimension?: number; quality?: number };
+
 function extOf(file: File): string {
   const fromName = file.name.split(".").pop()?.toLowerCase();
   if (fromName && /^[a-z0-9]{2,5}$/.test(fromName)) return fromName;
@@ -24,13 +35,15 @@ function extOf(file: File): string {
  * Se algo der errado (formato não suportado, etc.), sobe o arquivo
  * original sem quebrar o upload.
  */
-async function compressImage(file: File): Promise<File> {
+async function compressImage(file: File, opts: CompressOptions = {}): Promise<File> {
+  const maxDimension = opts.maxDimension ?? MAX_DIMENSION;
+  const quality = opts.quality ?? JPEG_QUALITY;
   if (!file.type.startsWith("image/") || file.type === "image/svg+xml") return file;
   if (file.size < SKIP_IF_UNDER_BYTES) return file;
 
   try {
     const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
     const width = Math.max(1, Math.round(bitmap.width * scale));
     const height = Math.max(1, Math.round(bitmap.height * scale));
 
@@ -43,7 +56,7 @@ async function compressImage(file: File): Promise<File> {
     bitmap.close?.();
 
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY),
+      canvas.toBlob(resolve, "image/jpeg", quality),
     );
     if (!blob || blob.size >= file.size) return file; // só usa se realmente ficou menor
 
@@ -126,8 +139,8 @@ async function trimTransparentPadding(file: File): Promise<File> {
  * Usa a URL pública quando o bucket é público; caso contrário gera uma URL
  * assinada de longa duração.
  */
-export async function uploadImage(file: File, folder = ""): Promise<string> {
-  const optimized = await compressImage(file);
+export async function uploadImage(file: File, folder = "", opts: CompressOptions = {}): Promise<string> {
+  const optimized = await compressImage(file, opts);
   const prefix = folder ? `${folder.replace(/\/+$/, "")}/` : "";
   const path = `${prefix}${crypto.randomUUID()}.${extOf(optimized)}`;
   const { error } = await supabase.storage
@@ -150,9 +163,11 @@ export function uploadProductImage(file: File): Promise<string> {
   return uploadImage(file, "produtos");
 }
 
-/** Upload de imagem de banner da home. */
+/** Upload de imagem de banner da home — qualidade mais alta que o padrão
+ * (o banner ocupa a tela inteira, então precisa de mais resolução/nitidez
+ * do que uma foto de produto numa fileira pequena de cards). */
 export function uploadBannerImage(file: File): Promise<string> {
-  return uploadImage(file, "banners");
+  return uploadImage(file, "banners", { maxDimension: BANNER_MAX_DIMENSION, quality: BANNER_JPEG_QUALITY });
 }
 
 /** Upload de imagem de novidade da home. */
