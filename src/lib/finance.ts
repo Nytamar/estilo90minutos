@@ -273,3 +273,83 @@ export const pendingSalesQuery = () => ({
   queryKey: ["sales-pending"],
   queryFn: fetchPendingSales,
 });
+
+// ------------------------------------------------------------
+// Caixa de reposição e caixa de lucro (com retiradas)
+// ------------------------------------------------------------
+export type FundKind = "reposicao" | "lucro";
+
+export type Withdrawal = {
+  id: string;
+  kind: FundKind;
+  amount: number;
+  note: string | null;
+  withdrawn_at: string;
+  created_at: string;
+};
+
+export type FinancialFunds = {
+  total_sales: number;
+  /** Faturamento de todo o período (valor vendido). */
+  revenue: number;
+  /** Ainda falta receber (vendas parceladas). */
+  pending: number;
+  cost_total: number;
+  profit_total: number;
+  /** Parte de custo / lucro que já foi efetivamente recebida. */
+  cost_received: number;
+  profit_received: number;
+  withdrawn_reposicao: number;
+  withdrawn_lucro: number;
+  /** Saldo disponível = recebido - retirado. */
+  balance_reposicao: number;
+  balance_lucro: number;
+};
+
+export async function fetchFinancialFunds(): Promise<FinancialFunds | null> {
+  const { data, error } = await supabase.from("v_financial_funds").select("*").maybeSingle();
+  if (error) throw error;
+  return (data ?? null) as unknown as FinancialFunds | null;
+}
+
+export async function fetchWithdrawals(): Promise<Withdrawal[]> {
+  const { data, error } = await supabase
+    .from("financial_withdrawals")
+    .select("*")
+    .order("withdrawn_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as Withdrawal[];
+}
+
+export type AddWithdrawalInput = {
+  kind: FundKind;
+  amount: number;
+  note?: string;
+  /** Data da retirada (ISO). Se não informada, usa agora. */
+  withdrawnAt?: string;
+};
+
+export async function addWithdrawal(input: AddWithdrawalInput): Promise<void> {
+  const { error } = await supabase.from("financial_withdrawals").insert({
+    kind: input.kind,
+    amount: input.amount,
+    note: input.note?.trim() || null,
+    ...(input.withdrawnAt ? { withdrawn_at: input.withdrawnAt } : {}),
+  });
+  if (error) throw error;
+}
+
+export async function deleteWithdrawal(id: string): Promise<void> {
+  const { error } = await supabase.from("financial_withdrawals").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export const financialFundsQuery = () => ({
+  queryKey: ["financial-funds"],
+  queryFn: fetchFinancialFunds,
+});
+
+export const withdrawalsQuery = () => ({
+  queryKey: ["withdrawals"],
+  queryFn: fetchWithdrawals,
+});
