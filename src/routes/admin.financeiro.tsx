@@ -21,6 +21,12 @@ import {
   financialByProductQuery,
   financialMonthlyQuery,
   financialDailyQuery,
+  financialFundsQuery,
+  withdrawalsQuery,
+  addWithdrawal,
+  deleteWithdrawal,
+  type FundKind,
+  type Withdrawal,
   notifySale,
   pendingSalesQuery,
   receiveGroupPayment,
@@ -239,6 +245,8 @@ function FinanceiroDashboard({
   const { data: daily = [], isLoading: loadingDaily } = useQuery(financialDailyQuery());
   const { data: byProduct = [], isLoading: loadingProducts } = useQuery(financialByProductQuery());
   const { data: monthly = [] } = useQuery(financialMonthlyQuery());
+  const { data: funds } = useQuery(financialFundsQuery());
+  const { data: withdrawals = [] } = useQuery(withdrawalsQuery());
   const [showAllSales, setShowAllSales] = useState(false);
   const { data: recentSales = [], isFetching: loadingRecentSales } = useQuery(
     recentSalesQuery(showAllSales ? null : 15),
@@ -315,6 +323,7 @@ function FinanceiroDashboard({
       void qc.invalidateQueries({ queryKey: ["financial-by-product"] });
       void qc.invalidateQueries({ queryKey: ["sales"] });
       void qc.invalidateQueries({ queryKey: ["sales-pending"] });
+      void qc.invalidateQueries({ queryKey: ["financial-funds"] });
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : "Erro ao lançar a venda");
@@ -329,6 +338,7 @@ function FinanceiroDashboard({
       void qc.invalidateQueries({ queryKey: ["financial-by-product"] });
       void qc.invalidateQueries({ queryKey: ["sales"] });
       void qc.invalidateQueries({ queryKey: ["sales-pending"] });
+      void qc.invalidateQueries({ queryKey: ["financial-funds"] });
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : "Erro ao excluir a venda");
@@ -342,9 +352,34 @@ function FinanceiroDashboard({
       toast.success("Pagamento registrado");
       void qc.invalidateQueries({ queryKey: ["sales"] });
       void qc.invalidateQueries({ queryKey: ["sales-pending"] });
+      void qc.invalidateQueries({ queryKey: ["financial-funds"] });
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : "Erro ao registrar o pagamento");
+    },
+  });
+
+  const { mutateAsync: submitWithdrawal, isPending: withdrawing } = useMutation({
+    mutationFn: addWithdrawal,
+    onSuccess: () => {
+      toast.success("Retirada registrada");
+      void qc.invalidateQueries({ queryKey: ["financial-funds"] });
+      void qc.invalidateQueries({ queryKey: ["withdrawals"] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Erro ao registrar a retirada");
+    },
+  });
+
+  const { mutate: removeWithdrawal } = useMutation({
+    mutationFn: deleteWithdrawal,
+    onSuccess: () => {
+      toast.success("Retirada excluída — o valor voltou pro saldo");
+      void qc.invalidateQueries({ queryKey: ["financial-funds"] });
+      void qc.invalidateQueries({ queryKey: ["withdrawals"] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Erro ao excluir a retirada");
     },
   });
 
@@ -358,6 +393,7 @@ function FinanceiroDashboard({
       void qc.invalidateQueries({ queryKey: ["financial-by-product"] });
       void qc.invalidateQueries({ queryKey: ["sales"] });
       void qc.invalidateQueries({ queryKey: ["sales-pending"] });
+      void qc.invalidateQueries({ queryKey: ["financial-funds"] });
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar a venda");
@@ -394,7 +430,56 @@ function FinanceiroDashboard({
         />
       )}
 
-      {/* Cards: faturamento / custo / lucro, separados automaticamente */}
+      {/* Caixa: todo o período — faturamento total + caixa de reposição + caixa de lucro */}
+      <div className="space-y-4">
+        <h2 className="font-display text-xl">Caixa (todo o período)</h2>
+        <div className="surface-card flex items-center justify-between rounded-2xl p-5">
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">Faturamento total (desde o início)</p>
+            <p className="mt-1 font-display text-2xl">{formatPrice(funds?.revenue ?? 0)}</p>
+            <p className="text-xs text-muted-foreground">
+              {funds?.total_sales ?? 0} venda(s) · Recebido{" "}
+              {formatPrice((funds?.revenue ?? 0) - (funds?.pending ?? 0))} · A receber{" "}
+              {formatPrice(funds?.pending ?? 0)}
+            </p>
+          </div>
+          <span className="h-8 w-2 shrink-0 rounded-full bg-violet-400" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FundCard
+            kind="reposicao"
+            title="Caixa de reposição"
+            hint="Custo das peças já recebido, pra repor estoque e pagar custos da loja"
+            accent="bg-rose-400"
+            balanceClass="text-warning"
+            entered={funds?.cost_received ?? 0}
+            withdrawn={funds?.withdrawn_reposicao ?? 0}
+            balance={funds?.balance_reposicao ?? 0}
+            withdrawals={withdrawals.filter((w) => w.kind === "reposicao")}
+            busy={withdrawing}
+            onAdd={(input) => submitWithdrawal({ kind: "reposicao", ...input })}
+            onDelete={(id) => removeWithdrawal(id)}
+          />
+          <FundCard
+            kind="lucro"
+            title="Caixa de lucro"
+            hint="Lucro líquido já recebido, disponível pra você retirar"
+            accent="bg-emerald-400"
+            balanceClass="text-primary"
+            entered={funds?.profit_received ?? 0}
+            withdrawn={funds?.withdrawn_lucro ?? 0}
+            balance={funds?.balance_lucro ?? 0}
+            withdrawals={withdrawals.filter((w) => w.kind === "lucro")}
+            busy={withdrawing}
+            onAdd={(input) => submitWithdrawal({ kind: "lucro", ...input })}
+            onDelete={(id) => removeWithdrawal(id)}
+          />
+        </div>
+      </div>
+
+      {/* Desempenho dos últimos 30 dias: faturamento / custo / lucro */}
+      <div className="space-y-4">
+        <h2 className="font-display text-xl">Últimos 30 dias</h2>
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="surface-card flex items-center justify-between rounded-2xl p-5">
           <div className="min-w-0">
@@ -422,6 +507,7 @@ function FinanceiroDashboard({
           </div>
           <span className="h-8 w-2 shrink-0 rounded-full bg-emerald-400" />
         </div>
+      </div>
       </div>
 
       {/* A receber */}
@@ -899,6 +985,178 @@ function DeleteSaleButton({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+// Caixa (reposição ou lucro): saldo disponível = entradas recebidas - retiradas.
+// "Registrar retirada" abate do saldo; o histórico lista cada retirada.
+function FundCard({
+  kind,
+  title,
+  hint,
+  accent,
+  balanceClass,
+  entered,
+  withdrawn,
+  balance,
+  withdrawals,
+  busy,
+  onAdd,
+  onDelete,
+}: {
+  kind: FundKind;
+  title: string;
+  hint: string;
+  accent: string;
+  balanceClass: string;
+  entered: number;
+  withdrawn: number;
+  balance: number;
+  withdrawals: Withdrawal[];
+  busy: boolean;
+  onAdd: (input: { amount: number; note?: string; withdrawnAt?: string }) => Promise<void>;
+  onDelete: (id: string) => void;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [date, setDate] = useState("");
+
+  async function confirm() {
+    const value = Number(amount);
+    if (!value || value <= 0) {
+      toast.error("Informe o valor da retirada");
+      return;
+    }
+    if (value > Number(balance) + 0.005) {
+      toast.error(`Saldo insuficiente — disponível: ${formatPrice(balance)}`);
+      return;
+    }
+    await onAdd({
+      amount: value,
+      note: note.trim() || undefined,
+      // meio-dia local, pra a data não "voltar um dia" por causa do fuso
+      withdrawnAt: date ? new Date(`${date}T12:00:00`).toISOString() : undefined,
+    });
+    setAdding(false);
+    setAmount("");
+    setNote("");
+    setDate("");
+  }
+
+  return (
+    <div className="surface-card rounded-2xl p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs text-muted-foreground">{title}</p>
+          <p className={`mt-1 font-display text-2xl ${balanceClass}`}>{formatPrice(balance)}</p>
+          <p className="text-xs text-muted-foreground">Disponível agora</p>
+        </div>
+        <span className={`h-8 w-2 shrink-0 rounded-full ${accent}`} />
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Entrou {formatPrice(entered)} · Retirado {formatPrice(withdrawn)}
+      </p>
+      <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p>
+
+      {adding ? (
+        <div className="mt-3 space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              placeholder="Valor retirado 0,00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="h-9 w-40"
+              autoFocus
+            />
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="h-9 w-40"
+              aria-label="Data da retirada (opcional)"
+            />
+          </div>
+          <Input
+            placeholder={
+              kind === "reposicao"
+                ? "Observação (ex: compra de 12 camisas, fornecedor X)"
+                : "Observação (opcional)"
+            }
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            className="h-9"
+          />
+          <div className="flex gap-2">
+            <Button size="sm" onClick={confirm} disabled={busy}>
+              Confirmar retirada
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setAdding(false);
+                setAmount("");
+                setNote("");
+                setDate("");
+              }}
+            >
+              Cancelar
+            </Button>
+          </div>
+          <p className="text-[11px] text-muted-foreground">Data em branco = hoje.</p>
+        </div>
+      ) : (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setAdding(true)}>
+            Registrar retirada
+          </Button>
+          <button
+            type="button"
+            onClick={() => setHistoryOpen((v) => !v)}
+            className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:underline"
+          >
+            Histórico ({withdrawals.length})
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${historyOpen ? "rotate-180" : ""}`} />
+          </button>
+        </div>
+      )}
+
+      {historyOpen && (
+        <ul className="mt-3 space-y-2 border-t border-border/60 pt-3 text-sm">
+          {withdrawals.length === 0 && (
+            <li className="text-xs text-muted-foreground">Nenhuma retirada registrada ainda.</li>
+          )}
+          {withdrawals.map((w) => (
+            <li key={w.id} className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">
+                  {new Date(w.withdrawn_at).toLocaleDateString("pt-BR")}
+                </p>
+                {w.note && <p className="break-words text-xs">{w.note}</p>}
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="font-medium">− {formatPrice(w.amount)}</span>
+                <button
+                  type="button"
+                  aria-label="Excluir retirada"
+                  className="text-muted-foreground hover:text-destructive"
+                  onClick={() => {
+                    if (window.confirm("Excluir esta retirada? O valor volta pro saldo.")) onDelete(w.id);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
