@@ -19,6 +19,8 @@ export const siteConfig = {
   instagram: "https://www.instagram.com/estillo90minutoss/",
   instagramHandle: "@estillo90minutoss",
   city: "Ipojuca - Nossa Senhora do Ó",
+  /** Mostra o link "Black Friday" no menu do site. Depois da campanha, troque para false. */
+  blackFridayEnabled: true,
 
 } as const;
 
