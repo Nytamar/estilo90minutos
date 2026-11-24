@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BlackFridayRouteImport } from './routes/black-friday'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as ContatoRouteImport } from './routes/contato'
 import { Route as FavoritosRouteImport } from './routes/favoritos'
@@ -21,8 +22,12 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAvisosRouteImport } from './routes/admin.avisos'
 import { Route as AdminBannersRouteImport } from './routes/admin.banners'
 import { Route as AdminCuponsRouteImport } from './routes/admin.cupons'
+import { Route as AdminFinanceiroRouteImport } from './routes/admin.financeiro'
+import { Route as AdminLimpezaRouteImport } from './routes/admin.limpeza'
+import { Route as AdminNovidadesRouteImport } from './routes/admin.novidades'
 import { Route as AdminTaxonomiasRouteImport } from './routes/admin.taxonomias'
 import { Route as ProdutoSlugRouteImport } from './routes/produto.$slug'
 import { Route as AdminProdutosIndexRouteImport } from './routes/admin.produtos.index'
@@ -41,6 +46,11 @@ const AdminRoute = AdminRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlackFridayRoute = BlackFridayRouteImport.update({
+  id: '/black-friday',
+  path: '/black-friday',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogoRoute = CatalogoRouteImport.update({
@@ -88,6 +98,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAvisosRoute = AdminAvisosRouteImport.update({
+  id: '/avisos',
+  path: '/avisos',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminBannersRoute = AdminBannersRouteImport.update({
   id: '/banners',
   path: '/banners',
@@ -96,6 +111,21 @@ const AdminBannersRoute = AdminBannersRouteImport.update({
 const AdminCuponsRoute = AdminCuponsRouteImport.update({
   id: '/cupons',
   path: '/cupons',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFinanceiroRoute = AdminFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLimpezaRoute = AdminLimpezaRouteImport.update({
+  id: '/limpeza',
+  path: '/limpeza',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminNovidadesRoute = AdminNovidadesRouteImport.update({
+  id: '/novidades',
+  path: '/novidades',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminTaxonomiasRoute = AdminTaxonomiasRouteImport.update({
@@ -123,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/black-friday': typeof BlackFridayRoute
   '/catalogo': typeof CatalogoRoute
   '/contato': typeof ContatoRoute
   '/favoritos': typeof FavoritosRoute
@@ -131,8 +162,12 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
+  '/admin/avisos': typeof AdminAvisosRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/cupons': typeof AdminCuponsRoute
+  '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/limpeza': typeof AdminLimpezaRoute
+  '/admin/novidades': typeof AdminNovidadesRoute
   '/admin/taxonomias': typeof AdminTaxonomiasRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
@@ -142,6 +177,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/black-friday': typeof BlackFridayRoute
   '/catalogo': typeof CatalogoRoute
   '/contato': typeof ContatoRoute
   '/favoritos': typeof FavoritosRoute
@@ -150,8 +186,12 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
+  '/admin/avisos': typeof AdminAvisosRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/cupons': typeof AdminCuponsRoute
+  '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/limpeza': typeof AdminLimpezaRoute
+  '/admin/novidades': typeof AdminNovidadesRoute
   '/admin/taxonomias': typeof AdminTaxonomiasRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin': typeof AdminIndexRoute
@@ -163,6 +203,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/black-friday': typeof BlackFridayRoute
   '/catalogo': typeof CatalogoRoute
   '/contato': typeof ContatoRoute
   '/favoritos': typeof FavoritosRoute
@@ -171,8 +212,12 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
+  '/admin/avisos': typeof AdminAvisosRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/cupons': typeof AdminCuponsRoute
+  '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/limpeza': typeof AdminLimpezaRoute
+  '/admin/novidades': typeof AdminNovidadesRoute
   '/admin/taxonomias': typeof AdminTaxonomiasRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
@@ -185,6 +230,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/black-friday'
     | '/catalogo'
     | '/contato'
     | '/favoritos'
@@ -193,8 +239,12 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/sobre'
     | '/termos'
+    | '/admin/avisos'
     | '/admin/banners'
     | '/admin/cupons'
+    | '/admin/financeiro'
+    | '/admin/limpeza'
+    | '/admin/novidades'
     | '/admin/taxonomias'
     | '/produto/$slug'
     | '/admin/'
@@ -204,6 +254,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/black-friday'
     | '/catalogo'
     | '/contato'
     | '/favoritos'
@@ -212,8 +263,12 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/sobre'
     | '/termos'
+    | '/admin/avisos'
     | '/admin/banners'
     | '/admin/cupons'
+    | '/admin/financeiro'
+    | '/admin/limpeza'
+    | '/admin/novidades'
     | '/admin/taxonomias'
     | '/produto/$slug'
     | '/admin'
@@ -224,6 +279,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/black-friday'
     | '/catalogo'
     | '/contato'
     | '/favoritos'
@@ -232,8 +288,12 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/sobre'
     | '/termos'
+    | '/admin/avisos'
     | '/admin/banners'
     | '/admin/cupons'
+    | '/admin/financeiro'
+    | '/admin/limpeza'
+    | '/admin/novidades'
     | '/admin/taxonomias'
     | '/produto/$slug'
     | '/admin/'
@@ -245,6 +305,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BlackFridayRoute: typeof BlackFridayRoute
   CatalogoRoute: typeof CatalogoRoute
   ContatoRoute: typeof ContatoRoute
   FavoritosRoute: typeof FavoritosRoute
@@ -277,6 +338,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/black-friday': {
+      id: '/black-friday'
+      path: '/black-friday'
+      fullPath: '/black-friday'
+      preLoaderRoute: typeof BlackFridayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/catalogo': {
@@ -342,6 +410,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/avisos': {
+      id: '/admin/avisos'
+      path: '/avisos'
+      fullPath: '/admin/avisos'
+      preLoaderRoute: typeof AdminAvisosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/banners': {
       id: '/admin/banners'
       path: '/banners'
@@ -354,6 +429,27 @@ declare module '@tanstack/react-router' {
       path: '/cupons'
       fullPath: '/admin/cupons'
       preLoaderRoute: typeof AdminCuponsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/financeiro': {
+      id: '/admin/financeiro'
+      path: '/financeiro'
+      fullPath: '/admin/financeiro'
+      preLoaderRoute: typeof AdminFinanceiroRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/limpeza': {
+      id: '/admin/limpeza'
+      path: '/limpeza'
+      fullPath: '/admin/limpeza'
+      preLoaderRoute: typeof AdminLimpezaRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/novidades': {
+      id: '/admin/novidades'
+      path: '/novidades'
+      fullPath: '/admin/novidades'
+      preLoaderRoute: typeof AdminNovidadesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/taxonomias': {
@@ -388,8 +484,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAvisosRoute: typeof AdminAvisosRoute
   AdminBannersRoute: typeof AdminBannersRoute
   AdminCuponsRoute: typeof AdminCuponsRoute
+  AdminFinanceiroRoute: typeof AdminFinanceiroRoute
+  AdminLimpezaRoute: typeof AdminLimpezaRoute
+  AdminNovidadesRoute: typeof AdminNovidadesRoute
   AdminTaxonomiasRoute: typeof AdminTaxonomiasRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminProdutosIdRoute: typeof AdminProdutosIdRoute
@@ -397,8 +497,12 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAvisosRoute: AdminAvisosRoute,
   AdminBannersRoute: AdminBannersRoute,
   AdminCuponsRoute: AdminCuponsRoute,
+  AdminFinanceiroRoute: AdminFinanceiroRoute,
+  AdminLimpezaRoute: AdminLimpezaRoute,
+  AdminNovidadesRoute: AdminNovidadesRoute,
   AdminTaxonomiasRoute: AdminTaxonomiasRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminProdutosIdRoute: AdminProdutosIdRoute,
@@ -411,6 +515,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  BlackFridayRoute: BlackFridayRoute,
   CatalogoRoute: CatalogoRoute,
   ContatoRoute: ContatoRoute,
   FavoritosRoute: FavoritosRoute,
@@ -424,3 +529,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
