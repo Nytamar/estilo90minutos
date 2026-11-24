@@ -374,6 +374,14 @@ export function Header() {
 
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
           <nav className="flex items-center gap-7 overflow-x-auto">
+            {siteConfig.blackFridayEnabled && (
+              <Link
+                to="/black-friday"
+                className="whitespace-nowrap rounded-full bg-neutral-950 px-3 py-1 text-sm font-bold uppercase tracking-wide text-amber-400 transition-opacity hover:opacity-80"
+              >
+                Black Friday
+              </Link>
+            )}
             <Link
               to="/novidades"
               className="whitespace-nowrap text-sm font-bold uppercase tracking-wide text-primary transition-colors hover:opacity-80"
@@ -476,6 +484,15 @@ export function Header() {
 
       {open && (
         <div className="border-t border-border bg-background px-4 py-3 md:hidden">
+          {siteConfig.blackFridayEnabled && (
+            <Link
+              to="/black-friday"
+              onClick={() => setOpen(false)}
+              className="mb-1 block rounded-md bg-neutral-950 px-2 py-2.5 text-sm font-bold text-amber-400"
+            >
+              Black Friday
+            </Link>
+          )}
           <Link
             to="/novidades"
             onClick={() => setOpen(false)}
